@@ -1,0 +1,37 @@
+.ratings {
+    height: 34px;
+
+    div {
+        width: calc(20% - 4px);
+        height: 30px;
+        margin: 0 2px;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .disabled, .selected {
+        cursor: default;
+    }
+
+    :not(.selected) & .disabled {
+        opacity: 0.75;
+    }
+
+    .selected {
+        width: 20%;
+        height: 34px;
+        margin: 0;
+        border-style: solid;
+        border-width: 2px;
+        border-color: white;
+    }
+
+    ::ng-deep circle {
+        stroke: black !important;
+    }
+}

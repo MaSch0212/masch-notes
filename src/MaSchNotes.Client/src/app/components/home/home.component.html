@@ -1,0 +1,30 @@
+<div class="container mt-3">
+    <div class="row mb-3">
+        <div class="col">
+            <h3>Welcome to MaSch Notes</h3>
+            <h4>Please login or create a new account by registering.</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5 mb-3">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>Login</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <masch-login (login)="onLogin()"></masch-login>
+                </mat-card-content>
+            </mat-card>
+        </div>
+        <div class="col-md-7">
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>Register</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <masch-register (register)="onRegister()"></masch-register>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

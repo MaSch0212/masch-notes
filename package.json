@@ -1,0 +1,9 @@
+{
+    "name": "masch-notes",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "build": "pwsh -f build/Build-Docker.ps1",
+        "push": "pwsh -f build/Push-Docker.ps1"
+    }
+}

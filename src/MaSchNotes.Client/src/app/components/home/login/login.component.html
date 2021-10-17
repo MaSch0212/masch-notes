@@ -1,0 +1,44 @@
+<form (ngSubmit)="onLoginSubmit(f)" #f="ngForm">
+    <div class="container">
+        <div class="row">
+            <mat-form-field class="col-12">
+                <input
+                    matInput
+                    placeholder="Username"
+                    ngModel
+                    name="username"
+                    required
+                />
+            </mat-form-field>
+            <mat-form-field class="col-12">
+                <input
+                    matInput
+                    type="password"
+                    placeholder="Password"
+                    ngModel
+                    name="password"
+                />
+            </mat-form-field>
+            <mat-checkbox class="col-12" ngModel name="rememberUsername">
+                Remember Username
+            </mat-checkbox>
+            <mat-checkbox class="col-12" ngModel name="stayLoggedIn"
+                >Stay logged in</mat-checkbox
+            >
+        </div>
+
+        <div class="row justify-content-between algin-items-center">
+            <div class="col-auto my-auto">
+                <mat-error *ngIf="loginFailed">Login failed.</mat-error>
+                <mat-error *ngIf="formInvalid"
+                    >Please fill in all fields correctly.</mat-error
+                >
+            </div>
+            <div class="col-auto">
+                <button type="submit" mat-raised-button color="primary">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

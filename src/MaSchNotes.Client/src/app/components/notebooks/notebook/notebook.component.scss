@@ -1,0 +1,23 @@
+@import '../../../../theme.scss';
+
+.title-button {
+    height: 32px;
+    width: 32px;
+    line-height: 28px;
+}
+
+.add-button {
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+}
+
+.mat-expansion-panel {
+    background-color: #515151;
+}
+
+h5 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

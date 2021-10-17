@@ -1,0 +1,29 @@
+.last-days {
+    div {
+        width: calc(14.2857143% - 4px);
+        height: 30px;
+        margin: 0 2px;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 22px;
+        text-overflow: clip;
+        overflow-x: hidden;
+        padding: 4px;
+        border-radius: 4px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .selected {
+        width: 14.2857143%;
+        height: 34px;
+        margin: 0;
+        border-style: solid;
+        border-width: 2px;
+        border-color: white;
+        cursor: default;
+    }
+}
+
+
+

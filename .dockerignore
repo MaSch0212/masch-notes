@@ -1,0 +1,6 @@
+.vs
+.vscode/
+bin/
+dist/
+obj/
+node_modules/

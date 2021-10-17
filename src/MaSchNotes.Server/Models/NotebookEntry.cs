@@ -1,0 +1,13 @@
+using System;
+
+namespace MaSch.Notes.Models
+{
+    public class NotebookEntry
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Category { get; set; }
+        public DateTime? Date { get; set; }
+        public string Content { get; set; }
+    }
+}

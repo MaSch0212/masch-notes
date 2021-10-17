@@ -1,0 +1,80 @@
+<mat-sidenav-container class="sidenav-container" fullscreen>
+    <mat-sidenav
+        #drawer
+        class="sidenav"
+        fixedInViewport="true"
+        [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+        [mode]="(isHandset$ | async) ? 'over' : 'side'"
+        [opened]="!(isHandset$ | async) && isLoggedIn"
+    >
+        <mat-toolbar>
+            <div class="toolbar-content row align-items-center mx-0">
+                Menu
+            </div>
+        </mat-toolbar>
+        <mat-nav-list>
+            <a
+                mat-list-item
+                routerLink="/overview"
+                (click)="onMenuItemClicked()"
+            >
+                <mat-icon svgIcon="home"></mat-icon>
+                <span class="ml-2">Overview</span>
+            </a>
+            <a
+                mat-list-item
+                routerLink="/dayratings"
+                (click)="onMenuItemClicked()"
+            >
+                <mat-icon svgIcon="emoticon-happy-outline"></mat-icon>
+                <span class="ml-2">Day Ratings</span>
+            </a>
+            <a
+                mat-list-item
+                routerLink="/notebooks"
+                (click)="onMenuItemClicked()"
+            >
+                <mat-icon svgIcon="notebook-multiple"></mat-icon>
+                <span class="ml-2">Notebooks</span>
+            </a>
+            <a
+                mat-list-item
+                routerLink="/settings"
+                (click)="onMenuItemClicked()"
+            >
+                <mat-icon svgIcon="cog"></mat-icon>
+                <span class="ml-2">Settings</span>
+            </a>
+            <mat-divider></mat-divider>
+            <a mat-list-item routerLink="/logoff" (click)="onMenuItemClicked()">
+                <mat-icon svgIcon="logout"></mat-icon>
+                <span class="ml-2">Logoff</span>
+            </a>
+        </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content #content>
+        <mat-toolbar color="primary">
+            <div class="toolbar-content row align-items-center mx-0 w-100">
+                <button
+                    class="col-auto"
+                    type="button"
+                    aria-label="Toggle sidenav"
+                    mat-icon-button
+                    (click)="drawer.toggle()"
+                    *ngIf="(isHandset$ | async) && isLoggedIn"
+                >
+                    <mat-icon
+                        aria-label="Side nav toggle icon"
+                        svgIcon="menu"
+                    ></mat-icon>
+                </button>
+                <span class="col">MaSch Notes</span>
+            </div>
+        </mat-toolbar>
+        <div class="app-content">
+            <div class="container my-3">
+                <router-outlet></router-outlet>
+            </div>
+        </div>
+    </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,122 @@
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@import '~@angular/material/theming';
+//@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat-core();
+
+
+// http://mcg.mbitson.com/#!?primary=%23f4b300&accent=%239f8a19&warn=%23f64b0d&themename=maschnotes
+$mat-primary: (
+    50 : #fef6e0,
+    100 : #fce8b3,
+    200 : #fad980,
+    300 : #f7ca4d,
+    400 : #f6be26,
+    500 : #f4b300,
+    600 : #f3ac00,
+    700 : #f1a300,
+    800 : #ef9a00,
+    900 : #ec8b00,
+    A100 : #ffffff,
+    A200 : #fff0e0,
+    A400 : #ffd9ad,
+    A700 : #ffcd93,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #000000,
+        700 : #000000,
+        800 : #000000,
+        900 : #000000,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$mat-accent: (
+    50 : #f3f1e3,
+    100 : #e2dcba,
+    200 : #cfc58c,
+    300 : #bcad5e,
+    400 : #ad9c3c,
+    500 : #9f8a19,
+    600 : #978216,
+    700 : #8d7712,
+    800 : #836d0e,
+    900 : #725a08,
+    A100 : #ffe7a2,
+    A200 : #ffda6f,
+    A400 : #ffcd3c,
+    A700 : #ffc623,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #000000,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+$mat-warn: (
+    50 : #fee9e2,
+    100 : #fcc9b6,
+    200 : #fba586,
+    300 : #f98156,
+    400 : #f76631,
+    500 : #f64b0d,
+    600 : #f5440b,
+    700 : #f33b09,
+    800 : #f23307,
+    900 : #ef2303,
+    A100 : #ffffff,
+    A200 : #ffe6e3,
+    A400 : #ffb7b0,
+    A700 : #ffa096,
+    contrast: (
+        50 : #000000,
+        100 : #000000,
+        200 : #000000,
+        300 : #000000,
+        400 : #000000,
+        500 : #ffffff,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #000000,
+        A200 : #000000,
+        A400 : #000000,
+        A700 : #000000,
+    )
+);
+
+// Create the theme object (a Sass map containing all of the palettes).
+$mat-theme: mat-dark-theme(
+    mat-palette($mat-primary),
+    mat-palette($mat-accent, A200, A100, A400),
+    mat-palette($mat-warn)
+);
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include angular-material-theme($mat-theme);

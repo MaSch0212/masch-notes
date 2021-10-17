@@ -1,0 +1,33 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content>
+    <form #f="ngForm">
+        <div class="mb-4">{{ data.message }}</div>
+        <mat-form-field class="col-12">
+            <input
+                matInput
+                [placeholder]="data.inputPlaceholder"
+                name="input"
+                [required]="'!data.allowEmpty'"
+                ngModel
+            />
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button
+        mat-button
+        type="button"
+        color="primary"
+        (click)="onOk()"
+    >
+        OK
+    </button>
+    <button
+        mat-button
+        type="button"
+        [mat-dialog-close]="null"
+    >
+        Cancel
+    </button>
+    <mat-dialog-actions> </mat-dialog-actions
+></mat-dialog-actions>

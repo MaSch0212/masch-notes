@@ -1,0 +1,55 @@
+@import '../../../mixins.scss';
+@import '../../../theme.scss';
+
+.mw-700px {
+    max-width: 700px;
+}
+
+.list-container {
+    a {
+        height: auto;
+        min-height: 48px;
+
+        mat-icon {
+            @include md-icon-size(24px);
+            margin: auto 0;
+        }
+    }
+}
+
+.tile-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: auto;
+
+    a {
+        flex-grow: 0;
+        flex-shrink: 0;
+        padding: 10px;
+    }
+}
+
+.tile {
+    width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    mat-icon {
+        @include md-icon-size(48px);
+    }
+
+    div {
+        margin-top: 4px;
+        line-height: initial;
+        white-space: normal;
+        flex-grow: 1;
+    }
+}
+
+.add-button {
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+}

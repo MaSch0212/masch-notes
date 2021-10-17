@@ -1,0 +1,46 @@
+<div class="row justify-content-center m-5" *ngIf="!notebooks">
+    <mat-spinner class="col-auto"></mat-spinner>
+</div>
+
+<div *ngIf="notebooks">
+    <h5 class="mb-4">Notebooks</h5>
+
+    <mat-nav-list *ngIf="!useTileView" class="list-container">
+        <a
+            mat-list-item
+            *ngFor="let notebook of notebooks"
+            [routerLink]="['/notebooks', notebook.id]"
+        >
+            <div class="row align-items-center my-2">
+                <div class="col-auto">
+                    <mat-icon
+                        [svgIcon]="
+                            notebook.isDiary ? 'notebook' : 'notebook-outline'
+                        "
+                        [inline]="true"
+                    ></mat-icon>
+                </div>
+                <div class="col">{{ notebook.name }}</div>
+            </div>
+        </a>
+    </mat-nav-list>
+
+    <div *ngIf="useTileView" class="tile-container">
+        <a
+            mat-button
+            *ngFor="let notebook of notebooks"
+            [routerLink]="['/notebooks', notebook.id]"
+        >
+            <div class="tile">
+                <mat-icon
+                    [svgIcon]="notebook.isDiary ? 'notebook' : 'notebook-outline'"
+                ></mat-icon>
+                <div>{{ notebook.name }}</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<button mat-fab color="primary" class="add-button" (click)="onCreateNotebook()" *ngIf="showCreateButton">
+    <mat-icon svgIcon="plus"></mat-icon>
+</button>

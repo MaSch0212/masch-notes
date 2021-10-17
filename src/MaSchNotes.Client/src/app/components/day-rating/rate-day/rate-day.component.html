@@ -1,0 +1,10 @@
+<div class="ratings row align-items-center mx-1">
+    <div *ngFor="let r of possibleRatings"
+         [ngClass]="['rating' + r.rating]"
+         (click)="changeRating(r.rating)"
+         [class.selected]="rating === r.rating"
+         [class.disabled]="isSaving">
+        <mat-icon [svgIcon]="r.svg" *ngIf="rating !== r.rating || !isSaving"></mat-icon>
+        <mat-spinner [diameter]="22" *ngIf="rating === r.rating && isSaving"></mat-spinner>
+    </div>
+</div>

@@ -1,0 +1,122 @@
+<div class="row justify-content-center m-5" *ngIf="!notebook || !originalEntry">
+    <mat-spinner class="col-auto"></mat-spinner>
+</div>
+
+<div *ngIf="notebook && originalEntry">
+    <form (ngSubmit)="onSubmit().subscribe()" #f="ngForm">
+        <div class="container">
+            <div class="row align-items-center mb-4">
+                <button
+                    class="col-auto title-button"
+                    mat-icon-button
+                    type="button"
+                    (click)="onClose()"
+                >
+                    <mat-icon svgIcon="chevron-left"></mat-icon>
+                </button>
+                <button
+                    class="col-auto title-button ml-2"
+                    color="primary"
+                    mat-icon-button
+                    type="submit"
+                    attr.aria-label="Save {{
+                        notebook.isDiary ? 'diary' : 'notebook'
+                    }} entry"
+                >
+                    <mat-icon svgIcon="content-save"></mat-icon>
+                </button>
+                <div class="col"></div>
+                <button
+                    class="col-auto title-button"
+                    color="warn"
+                    mat-icon-button
+                    type="button"
+                    (click)="onDeleteEntry()"
+                    attr.aria-label="Delete {{
+                        notebook.isDiary ? 'diary' : 'notebook'
+                    }} entry"
+                    *ngIf="!isNewEntry"
+                >
+                    <mat-icon svgIcon="delete"></mat-icon>
+                </button>
+            </div>
+
+            <div class="row">
+                <mat-form-field class="col-12" *ngIf="!notebook.isDiary">
+                    <input
+                        matInput
+                        placeholder="Entry name"
+                        ngModel
+                        name="name"
+                        required
+                    />
+                </mat-form-field>
+
+                <mat-form-field class="col-12" *ngIf="!notebook.isDiary">
+                        <input
+                            matInput
+                            type="text"
+                            placeholder="Category"
+                            [(ngModel)]="selectedCategory"
+                            name="category"
+                            [matAutocomplete]="autoCat"
+                        />
+                        <mat-autocomplete #autoCat="matAutocomplete">
+                            <mat-option *ngFor="let category of knownCategories" [value]="category">
+                                {{ category }}
+                            </mat-option>
+                        </mat-autocomplete>
+                        <button mat-button *ngIf="selectedCategory" matSuffix mat-icon-button aria-label="Clear" (click)="selectedCategory=null">
+                            <mat-icon svgIcon="close"></mat-icon>
+                        </button>
+                    </mat-form-field>
+
+                <!--<mat-form-field class="col-12" *ngIf="!notebook.isDiary">
+                    <mat-label>Category</mat-label>
+                    <mat-select>
+                        <mat-option [value]="null">&lt;No Category&gt;</mat-option>
+                        <mat-option *ngFor="let category of knownCategories" [value]="category">
+                            {{ category }}
+                        </mat-option>
+                    </mat-select>
+                    <button mat-button matSuffix mat-icon-button aria-label="Add new category" (click)="onCreateNewCategory()">
+                        <mat-icon svgIcon="plus"></mat-icon>
+                    </button>
+                </mat-form-field>-->
+
+                <mat-form-field class="col-12 col-md-auto" *ngIf="notebook.isDiary">
+                    <input
+                        matInput
+                        [matDatepicker]="datepicker"
+                        placeholder="Date"
+                        name="date"
+                        ngModel
+                        required
+                    />
+                    <mat-datepicker-toggle matSuffix [for]="datepicker">
+                    </mat-datepicker-toggle>
+                    <mat-datepicker #datepicker></mat-datepicker>
+                </mat-form-field>
+
+                <div class="col-12 col-md mb-3 rating-container">
+                    <span class="label">Rating</span>
+                    <masch-rate-day [date]="f.value.date"></masch-rate-day>
+                </div>
+
+                <mat-form-field class="col-12">
+                    <mat-label>Content</mat-label>
+                    <textarea
+                        class="content-area"
+                        matInput
+                        ngModel
+                        name="content"
+                        required
+                        cdkTextareaAutosize
+                        cdkAutosizeMinRows="5"
+                        [ngModelOptions]="{updateOn: 'blur'}"
+                    ></textarea>
+                </mat-form-field>
+            </div>
+        </div>
+    </form>
+</div>

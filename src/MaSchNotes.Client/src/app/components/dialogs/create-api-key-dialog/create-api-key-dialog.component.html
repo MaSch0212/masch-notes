@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Create API key</h2>
+<mat-dialog-content>
+    <p>
+        Please provide a name for the key, so you can distiguish it from other
+        API keys.
+    </p>
+    <mat-form-field class="w-100">
+        <input
+            matInput
+            placeholder="API key name"
+            [(ngModel)]="keyName"
+            required
+            [disabled]="isLoading"
+        />
+    </mat-form-field>
+    <mat-error *ngIf="errorMsg">{{ errorMsg }}</mat-error>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button
+        mat-button
+        color="primary"
+        (click)="onCreateClicked()"
+        [disabled]="isLoading"
+    >
+        Create
+    </button>
+    <button mat-button [mat-dialog-close]="null" [disabled]="isLoading">
+        Cancel
+    </button>
+    <mat-dialog-actions> </mat-dialog-actions
+></mat-dialog-actions>

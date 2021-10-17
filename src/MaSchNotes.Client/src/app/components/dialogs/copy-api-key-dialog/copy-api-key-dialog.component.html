@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>API key created</h2>
+<mat-dialog-content>
+    <p>
+        The API key with the name {{ data.keyInfo.name }} has been successfully
+        created.
+    </p>
+    <p>
+        Please keep the following API key save, because you can not retrieve it
+        after closing this dialog.
+    </p>
+    <div class="row align-items-center">
+        <div class="col api-key">{{ data.key }}</div>
+        <button mat-icon-button class="col-auto" (click)="onCopyKey()">
+            <mat-icon svgIcon="content-copy"></mat-icon>
+        </button>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-button [mat-dialog-close]>Close</button>
+    <mat-dialog-actions> </mat-dialog-actions
+></mat-dialog-actions>

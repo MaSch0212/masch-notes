@@ -1,0 +1,99 @@
+@import './theme.scss';
+@import '~bootstrap/scss/bootstrap.scss';
+
+:root {
+    --day-rating-0: #FF5500;
+    --day-rating-1: #FFAA00;
+    --day-rating-2: #FFFF00;
+    --day-rating-3: #AAEB00;
+    --day-rating-4: #55D700;
+}
+
+html,
+body {
+    height: 100%;
+}
+body {
+    font-family: Roboto, 'Helvetica Neue', sans-serif;
+    margin: 0;
+    width: 100%;
+}
+
+button.mat-menu-item {
+    line-height: 24px !important;
+}
+a.mat-menu-item > mat-icon {
+    margin-bottom: 14px;
+}
+/*.mat-icon svg {
+    height: 24px;
+    width: 24px;
+    vertical-align: top;
+}*/
+
+.hidden-xs {
+    @include media-breakpoint-only(xs) {
+        display: none;
+    }
+}
+
+.mat-snack-bar-container.mat-warn {
+    color: mat-color(map-get($mat-theme, warn));
+}
+
+.mat-snack-bar-container {
+    margin-bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+}
+
+.mat-drawer-backdrop.mat-drawer-shown {
+    background-color: rgba(64, 64, 64, 0.6);
+}
+
+a.mat-button {
+    color:inherit;
+    text-decoration: none;
+}
+
+a.mat-icon-button {
+    color:inherit;
+    text-decoration: none;
+}
+
+.mat-list-item-content {
+    min-height: inherit;
+}
+
+.rating-none {
+    background-color: black;
+    color: white;
+}
+.rating0 {
+    background-color: var(--day-rating-0);
+    color: black;
+}
+.rating1 {
+    background-color: var(--day-rating-1);
+    color: black;
+}
+.rating2 {
+    background-color: var(--day-rating-2);
+    color: black;
+}
+.rating3 {
+    background-color: var(--day-rating-3);
+    color: black;
+}
+.rating4 {
+    background-color: var(--day-rating-4);
+    color: black;
+}
+
+.masch-overlay-pane {
+    background-color: mat-color(map-get($mat-theme, background), card);
+    color: mat-color(map-get($mat-theme, foreground), text);
+
+    > * {
+        width: 100%;
+        height: 100%;
+    }
+}

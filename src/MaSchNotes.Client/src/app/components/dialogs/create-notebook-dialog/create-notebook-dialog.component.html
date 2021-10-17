@@ -1,0 +1,38 @@
+<h2 mat-dialog-title>Create Notebook</h2>
+<mat-dialog-content>
+    <form (ngSubmit)="onSubmit(f)" #f="ngForm">
+        <div class="container">
+            <div class="row">
+                <mat-form-field class="col-12">
+                    <input
+                        matInput
+                        placeholder="Notebook name"
+                        name="name"
+                        required
+                        ngModel
+                    />
+                </mat-form-field>
+                <mat-checkbox class="col-12" ngModel name="isDiary">
+                    This Notebook is a diary
+                </mat-checkbox>
+            </div>
+        </div>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions class="align-items-center">
+    <button
+        class="col-auto"
+        mat-button
+        (click)="f.onSubmit($event)"
+        color="primary"
+        type="button"
+    >
+        Save
+    </button>
+    <button class="col-auto" mat-button [mat-dialog-close]="null" type="button">
+        Cancel
+    </button>
+    <div class="col">
+        <mat-error>{{ errorMessage }}</mat-error>
+    </div>
+</mat-dialog-actions>

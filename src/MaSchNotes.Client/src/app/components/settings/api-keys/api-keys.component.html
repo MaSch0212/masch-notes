@@ -1,0 +1,41 @@
+<p>
+    With API keys you are able to provide authentication to applications that
+    you do not want to login manually (like IFTTT). You can just call the normal
+    API method and extend the query parameter "apikey" with the generated API
+    key.
+</p>
+<mat-list>
+    <mat-list-item *ngFor="let key of apiKeys; let i = index">
+        <div class="row w-100 align-items-center no-gutters">
+            <div class="col text-truncate">
+                {{ key.name }}
+            </div>
+            <div class="col-5 text-truncate">
+                {{ key.createdAt | date: 'short' }}
+            </div>
+            <div class="col-auto">
+                <button
+                    mat-icon-button
+                    color="warn"
+                    (click)="onDeleteApiKey(i)"
+                >
+                    <mat-icon svgIcon="delete"></mat-icon>
+                </button>
+            </div>
+        </div>
+        <mat-divider *ngIf="i < apiKeys.length - 1"></mat-divider>
+    </mat-list-item>
+</mat-list>
+
+<div class="row justify-content-end mt-2">
+    <div class="col-auto mr-3">
+        <button
+            mat-button
+            mat-raised-button
+            color="primary"
+            (click)="onGenerateApiKey()"
+        >
+            Create Key
+        </button>
+    </div>
+</div>

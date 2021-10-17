@@ -1,0 +1,7 @@
+{
+    "name": "MaSch Notes",
+    "short_name": "MaSch Notes",
+    "display": "fullscreen",
+    "scope": "/MaSchNotes/",
+    "start_url": "/MaSchNotes/"
+}

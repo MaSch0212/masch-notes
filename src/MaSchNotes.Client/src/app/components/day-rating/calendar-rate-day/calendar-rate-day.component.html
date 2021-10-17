@@ -1,0 +1,16 @@
+<div class="p-2">
+  <div class="row align-items-center no-gutters">
+    <h4 class="col mt-2">Change rating for {{ day.date | date:'longDate' }}</h4>
+    <button class="col-auto"
+            mat-icon-button
+            (click)="closeOverlay()"
+            attr.aria-label="Close">
+      <mat-icon svgIcon="close"></mat-icon>
+    </button>
+  </div>
+  <div class="my-4">
+    <masch-rate-day [(rating)]="day.rating"
+                    [date]="day.date"
+                    (ratingChange)="closeOverlay()"></masch-rate-day>
+  </div>
+</div>

@@ -1,0 +1,19 @@
+<div class="row justify-content-center m-5" *ngIf="!lastDays">
+    <mat-spinner class="col-auto"></mat-spinner>
+</div>
+
+<div *ngIf="lastDays">
+    <h5 class="mb-4">Day Ratings</h5>
+
+    <span>Ratings of the last 7 days</span>
+    <div class="last-days row align-items-center mx-1">
+        <div *ngFor="let day of lastDays"
+             [ngClass]="[ day.rating == null ? 'rating-none' : ('rating' + day.rating), selectedDay === day ? 'selected' : '' ]"
+             (click)="selectedDay = day">
+             {{ day.date | date:'d' }}
+        </div>
+    </div>
+    <br>
+    <span>Rate today ({{ selectedDay.date | date:'longDate' }}):</span>
+    <masch-rate-day [(rating)]="selectedDay.rating" [date]="selectedDay.date"></masch-rate-day>
+</div>

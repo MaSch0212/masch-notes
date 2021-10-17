@@ -1,0 +1,73 @@
+<div class="row justify-content-center m-5" *ngIf="!notebook">
+    <mat-spinner class="col-auto"></mat-spinner>
+</div>
+
+<div *ngIf="notebook">
+    <div class="row no-gutters align-items-center mb-4">
+        <a class="col-auto title-button" mat-icon-button routerLink="..">
+            <mat-icon svgIcon="chevron-left"></mat-icon>
+        </a>
+        <h5 class="col mb-0 ml-2">{{ notebook.name }}</h5>
+        <button
+            class="col-auto title-button"
+            color="primary"
+            mat-icon-button
+            (click)="onEditNotebook()"
+            attr.aria-label="Edit name of {{
+                notebook.isDiary ? 'diary' : 'notebook'
+            }} &quot;{{ notebook.name }}&quot;"
+        >
+            <mat-icon svgIcon="pencil"></mat-icon>
+        </button>
+        <button
+            class="col-auto title-button"
+            color="warn"
+            mat-icon-button
+            (click)="onDeleteNotebook()"
+            attr.aria-label="Delete {{
+                notebook.isDiary ? 'diary' : 'notebook'
+            }} &quot;{{ notebook.name }}&quot;"
+        >
+            <mat-icon svgIcon="delete"></mat-icon>
+        </button>
+    </div>
+
+    <div
+        class="row justify-content-center"
+        *ngIf="!entryGroups || entryGroups.length === 0"
+    >
+        <div class="col-auto">
+            There are currently no entries in this
+            {{ notebook.isDiary ? 'diary' : 'notebook' }}.
+        </div>
+    </div>
+
+    <mat-accordion [multi]="true">
+        <mat-expansion-panel
+            *ngFor="let group of entryGroups"
+            [expanded]="group.isExpanded"
+        >
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    {{ group.name }}
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-template matExpansionPanelContent>
+                <mat-nav-list>
+                    <a
+                        mat-list-item
+                        *ngFor="let entry of group.entries"
+                        [routerLink]="['/notebooks', notebook.id, entry.id]"
+                    >
+                        <div *ngIf="notebook.isDiary">{{entry.date | date:"dd - EEEE"}}</div>
+                        <div *ngIf="!notebook.isDiary">{{entry.name}}</div>
+                    </a>
+                </mat-nav-list>
+            </ng-template>
+        </mat-expansion-panel>
+    </mat-accordion>
+</div>
+
+<a mat-fab color="primary" class="add-button" [routerLink]="['new']">
+    <mat-icon svgIcon="plus"></mat-icon>
+</a>

@@ -1,0 +1,45 @@
+<div class="row justify-content-center m-5" *ngIf="!currentRatingDays">
+    <mat-spinner class="col-auto"></mat-spinner>
+</div>
+
+<div *ngIf="currentRatingDays">
+    <h5 class="mb-4">Day Ratings</h5>
+
+    <mat-card>
+        <div class="row align-items-center justify-content-between mx-2">
+            <button class="col-auto"
+                    mat-icon-button
+                    (click)="loadMonth(currentMonth.getFullYear(), currentMonth.getMonth() - 1)"
+                    attr.aria-label="Previous month">
+                <mat-icon svgIcon="chevron-left"></mat-icon>
+            </button>
+            <div class="mt-1">{{ currentMonth | date:'MMMM yyyy' }}</div>
+            <button class="col-auto"
+                    mat-icon-button
+                    (click)="loadMonth(currentMonth.getFullYear(), currentMonth.getMonth() + 1)"
+                    [disabled]="canGoToNextMonth()"
+                    attr.aria-label="Previous month">
+                <mat-icon svgIcon="chevron-right"></mat-icon>
+            </button>
+        </div>
+
+        <div class="calendar">
+            <div style.gridArea="d0">Mo</div>
+            <div style.gridArea="d1">Tu</div>
+            <div style.gridArea="d2">We</div>
+            <div style.gridArea="d3">Th</div>
+            <div style.gridArea="d4">Fr</div>
+            <div style.gridArea="d5">Sa</div>
+            <div style.gridArea="d6">Su</div>
+            <div *ngFor="let day of currentRatingDays"
+                [id]="'calendar-day-w' + day.weekOfMonth + 'd' + day.dayOfWeek"
+                [style.gridArea]="'w' + day.weekOfMonth + 'd' + day.dayOfWeek"
+                [ngClass]="[ day.rating == null ? 'rating-none' : ('rating' + day.rating) ]"
+                [class.disabled]="day.date == null || day.date > today"
+                [class.selected]="day.isSelected"
+                (click)="changeRating(day, $event)">
+                {{ day.date | date:'d' }}
+            </div>
+        </div>
+    </mat-card>
+</div>
