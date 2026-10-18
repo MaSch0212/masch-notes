@@ -19,6 +19,7 @@ type NotebooksService interface {
 	GetEntry(ctx context.Context, req GetEntryRequest) (GetEntryResponse, error)
 	UpdateEntry(ctx context.Context, req UpdateEntryRequest) (UpdateEntryResponse, error)
 	DeleteEntry(ctx context.Context, req DeleteEntryRequest) (DeleteEntryResponse, error)
+	ListMonthCounts(ctx context.Context, req ListMonthCountsRequest) (ListMonthCountsResponse, error)
 	ListCategories(ctx context.Context, req ListCategoriesRequest) (ListCategoriesResponse, error)
 }
 
@@ -35,6 +36,7 @@ func RegisterNotebooksRoutes(mux *http.ServeMux, svc NotebooksService, opts ...S
 	o.handle(mux, "GET", "/notebooks/{notebookID}/entries/{entryID}", serve(o, decodeGetEntryRequest, svc.GetEntry, GetEntryResponse.writeGetEntryResponse))
 	o.handle(mux, "PUT", "/notebooks/{notebookID}/entries/{entryID}", serve(o, decodeUpdateEntryRequest, svc.UpdateEntry, UpdateEntryResponse.writeUpdateEntryResponse))
 	o.handle(mux, "DELETE", "/notebooks/{notebookID}/entries/{entryID}", serve(o, decodeDeleteEntryRequest, svc.DeleteEntry, DeleteEntryResponse.writeDeleteEntryResponse))
+	o.handle(mux, "GET", "/notebooks/{notebookID}/month-counts", serve(o, decodeListMonthCountsRequest, svc.ListMonthCounts, ListMonthCountsResponse.writeListMonthCountsResponse))
 	o.handle(mux, "GET", "/notebooks/{notebookID}/categories", serve(o, decodeListCategoriesRequest, svc.ListCategories, ListCategoriesResponse.writeListCategoriesResponse))
 }
 
@@ -806,6 +808,79 @@ type DeleteEntryDefaultResponse struct {
 }
 
 func (v DeleteEntryDefaultResponse) writeDeleteEntryResponse(w http.ResponseWriter) error {
+	body, err := marshalJSON(v.Body)
+	if err != nil {
+		return err
+	}
+	return writeResponse(w, statusOrDefault(v.StatusCode, 500), responseHeaders(v.Headers), "application/json", body)
+}
+
+// ListMonthCountsRequest is the request of ListMonthCounts.
+type ListMonthCountsRequest struct {
+	NotebookID int64
+	// HTTPRequest is the request as received, e.g. to read what is not declared.
+	HTTPRequest *http.Request
+}
+
+func decodeListMonthCountsRequest(r *http.Request, o *ServerOptions) (req ListMonthCountsRequest, err error) {
+	req.HTTPRequest = r
+	if req.NotebookID, err = requiredValue("path", "notebookId", pathParamValues(r, "notebookID", "notebookId", "simple", false, false), parseInt[int64]); err != nil {
+		return req, err
+	}
+	return req, nil
+}
+
+// ListMonthCountsResponse is the response of ListMonthCounts, one of ListMonthCounts200Response, ListMonthCounts404Response, ListMonthCountsDefaultResponse.
+type ListMonthCountsResponse interface {
+	writeListMonthCountsResponse(w http.ResponseWriter) error
+}
+
+// ListMonthCounts200Response is the response with status 200.
+//
+// Number of dated entries per month, oldest first (months without entries are omitted)
+type ListMonthCounts200Response struct {
+	Body []MonthCount
+	// Headers are additional headers of the response.
+	Headers http.Header
+}
+
+func (v ListMonthCounts200Response) writeListMonthCountsResponse(w http.ResponseWriter) error {
+	body, err := marshalJSON(v.Body)
+	if err != nil {
+		return err
+	}
+	return writeResponse(w, 200, responseHeaders(v.Headers), "application/json", body)
+}
+
+// ListMonthCounts404Response is the response with status 404.
+//
+// Error
+type ListMonthCounts404Response struct {
+	Body Error
+	// Headers are additional headers of the response.
+	Headers http.Header
+}
+
+func (v ListMonthCounts404Response) writeListMonthCountsResponse(w http.ResponseWriter) error {
+	body, err := marshalJSON(v.Body)
+	if err != nil {
+		return err
+	}
+	return writeResponse(w, 404, responseHeaders(v.Headers), "application/json", body)
+}
+
+// ListMonthCountsDefaultResponse is the response with any other status.
+//
+// Error
+type ListMonthCountsDefaultResponse struct {
+	// StatusCode is the status of the response, 500 if it is not set.
+	StatusCode int
+	Body       Error
+	// Headers are additional headers of the response.
+	Headers http.Header
+}
+
+func (v ListMonthCountsDefaultResponse) writeListMonthCountsResponse(w http.ResponseWriter) error {
 	body, err := marshalJSON(v.Body)
 	if err != nil {
 		return err

@@ -291,6 +291,23 @@ paths:
         '404': { $ref: '#/components/responses/Error' }
         default: { $ref: '#/components/responses/Error' }
 
+  /notebooks/{notebookId}/month-counts:
+    parameters:
+      - $ref: '#/components/parameters/NotebookId'
+    get:
+      tags: [Notebooks]
+      operationId: listMonthCounts
+      responses:
+        '200':
+          description: Number of dated entries per month, oldest first (months without entries are omitted)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MonthCount' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
   /notebooks/{notebookId}/categories:
     parameters:
       - $ref: '#/components/parameters/NotebookId'
@@ -744,6 +761,15 @@ components:
         content:
           type: string
           format: byte
+
+    MonthCount:
+      type: object
+      required: [month, count]
+      properties:
+        month:
+          type: string
+          description: Month in the format yyyy-MM.
+        count: { type: integer }
 
     DayRating:
       type: object

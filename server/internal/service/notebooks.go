@@ -339,3 +339,22 @@ func (s *NotebooksService) ListCategories(ctx context.Context, req api.ListCateg
 	}
 	return api.ListCategories200Response{Body: cats}, nil
 }
+
+func (s *NotebooksService) ListMonthCounts(ctx context.Context, req api.ListMonthCountsRequest) (api.ListMonthCountsResponse, error) {
+	uid, err := userID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.ownedNotebook(ctx, uid, req.NotebookID); err != nil {
+		return nil, err
+	}
+	counts, err := s.Store.ListMonthCounts(ctx, req.NotebookID)
+	if err != nil {
+		return nil, err
+	}
+	body := make([]api.MonthCount, len(counts))
+	for i, c := range counts {
+		body[i] = api.MonthCount{Month: c.Month, Count: c.Count}
+	}
+	return api.ListMonthCounts200Response{Body: body}, nil
+}

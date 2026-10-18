@@ -186,6 +186,32 @@ func TestListEntriesRangeAndIncludeContent(t *testing.T) {
 	}
 }
 
+func TestEntryMonthCounts(t *testing.T) {
+	s := newTestServer(t)
+	tok := s.tokenFor(s.seedLegacyUser("alice", "pw"))
+	nb := s.newNotebook(tok, "Diary", true)
+	base := fmt.Sprintf("/api/notebooks/%d/entries", nb.ID)
+	for _, d := range []string{"2024-12-31", "2025-08-01", "2025-08-02", "2025-09-01"} {
+		s.do("POST", base, tok, map[string]any{"date": d, "content": b64([]byte(d))})
+	}
+	// Legacy rows use the "yyyy-MM-dd HH:mm:ss" format; undated rows are not counted.
+	if _, err := s.Store.DB.Exec(`INSERT INTO notebookentries (notebookid, date, content) VALUES (?, '2025-08-20 00:00:00', x'00'), (?, NULL, x'00')`, nb.ID, nb.ID); err != nil {
+		t.Fatal(err)
+	}
+	var counts []api.MonthCount
+	if code := s.doJSON("GET", fmt.Sprintf("/api/notebooks/%d/month-counts", nb.ID), tok, nil, &counts); code != 200 {
+		t.Fatalf("status %d", code)
+	}
+	want := []api.MonthCount{{Month: "2024-12", Count: 1}, {Month: "2025-08", Count: 3}, {Month: "2025-09", Count: 1}}
+	if fmt.Sprint(counts) != fmt.Sprint(want) {
+		t.Fatalf("got %+v want %+v", counts, want)
+	}
+	mallory := s.tokenFor(s.seedLegacyUser("mallory", "pw"))
+	if code, _ := s.do("GET", fmt.Sprintf("/api/notebooks/%d/month-counts", nb.ID), mallory, nil); code != 404 {
+		t.Fatalf("other user: %d", code)
+	}
+}
+
 func TestEntryEncVersionFollowsUserKey(t *testing.T) {
 	s := newTestServer(t)
 	legacy := s.tokenFor(s.seedLegacyUser("alice", "pw"))

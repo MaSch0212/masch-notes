@@ -201,3 +201,32 @@ func (s *Store) ListCategories(ctx context.Context, notebookID int64) ([]string,
 	}
 	return out, rows.Err()
 }
+
+// MonthCount is the number of dated entries of a notebook in one month (yyyy-MM).
+type MonthCount struct {
+	Month string
+	Count int
+}
+
+// ListMonthCounts counts the dated entries of a notebook per month, oldest first.
+// Both stored date formats start with yyyy-MM, so the prefix works for all rows.
+func (s *Store) ListMonthCounts(ctx context.Context, notebookID int64) ([]MonthCount, error) {
+	rows, err := s.q().QueryContext(ctx,
+		`SELECT substr(CAST([date] AS TEXT), 1, 7) AS [month], COUNT(*)
+		 FROM [notebookentries]
+		 WHERE [notebookid] = ? AND [date] IS NOT NULL
+		 GROUP BY [month] ORDER BY [month]`, notebookID)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	out := []MonthCount{}
+	for rows.Next() {
+		var m MonthCount
+		if err := rows.Scan(&m.Month, &m.Count); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}

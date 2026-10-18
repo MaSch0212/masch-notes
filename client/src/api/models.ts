@@ -25,6 +25,7 @@ export type { LoginResponse } from './models/login-response';
 export type { MigratedEntry } from './models/migrated-entry';
 export type { MigrationInfo } from './models/migration-info';
 export type { MigrationStatus } from './models/migration-status';
+export type { MonthCount } from './models/month-count';
 export type { NotebookEntry } from './models/notebook-entry';
 export type { NotebookInput } from './models/notebook-input';
 export type { Notebook } from './models/notebook';

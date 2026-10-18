@@ -1,6 +1,7 @@
 import { UrlBuilder } from '../utils/fetch-client.utils';
 
 import type { EntryInput } from '../models/entry-input';
+import type { MonthCount } from '../models/month-count';
 import type { NotebookEntry } from '../models/notebook-entry';
 import type { NotebookInput } from '../models/notebook-input';
 import type { Notebook } from '../models/notebook';
@@ -219,6 +220,25 @@ export class NotebooksClient {
     });
     Object.defineProperty(response, 'isVoidResponse', { value: true });
     return response as unknown as Promise<TypedResponse<void>>;
+  }
+
+  /**
+   * @param params Parameters for the endpoint.
+   */
+  public listMonthCounts(params: {
+      notebookId: number;
+    }): Promise<TypedResponse<(MonthCount)[]>> {
+    const url = new UrlBuilder(this.options.baseUrl)
+      .withPath('/notebooks/{notebookId}/month-counts')
+      .withPathParam('notebookId', params.notebookId)
+      .build();
+    const headers = { ...this.options.headers };
+    const response = (this.options.fetch ?? fetch)(url, {
+      method: 'GET',
+      headers: headers,
+    });
+    Object.defineProperty(response, 'isVoidResponse', { value: false });
+    return response as unknown as Promise<TypedResponse<(MonthCount)[]>>;
   }
 
   /**
