@@ -4,6 +4,7 @@ import { AppShell } from './components/layout/AppShell';
 import { Spinner, ToastHost } from './components/ui';
 import { I18nProvider } from './lib/i18n';
 import { session } from './lib/session';
+import DiaryPage from './pages/DiaryPage';
 import HomeRedirect from './pages/HomeRedirect';
 import LoginPage from './pages/LoginPage';
 import { MigrationModal } from './pages/MigrationModal';
@@ -40,7 +41,6 @@ function Protected(props: RouteSectionProps): JSX.Element {
 
 const Stub = (name: string) => () => <p data-page={name}>{name}</p>;
 
-const DiaryPage = Stub('diary');
 const NotebookPage = Stub('notebook');
 const SettingsPage = Stub('settings');
 
