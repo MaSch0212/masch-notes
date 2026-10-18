@@ -145,9 +145,7 @@ describe('DiaryPage', () => {
     await waitFor(() =>
       expect(document.querySelector('[data-month="2026-08"]')).toHaveAttribute('data-count', '2'),
     );
-    await user.click(
-      await screen.findByRole('button', { name: /Latest entry: .*2 September 2026/ }),
-    );
+    await user.click(await screen.findByRole('button', { name: /Latest entry: Sep 2, 2026/ }));
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('2 September 2026'),
     );

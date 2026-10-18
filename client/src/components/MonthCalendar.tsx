@@ -77,12 +77,12 @@ export function MonthCalendar(props: {
   return (
     <div
       ref={(el) => (root = el)}
-      class="grid w-full select-none"
+      class="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] select-none"
       role="presentation"
       onKeyDown={onKeyDown}
     >
       <div
-        class={`col-start-1 row-start-1 transition-opacity duration-200 ${picker() ? 'pointer-events-none opacity-0' : ''}`}
+        class={`col-start-1 row-start-1 min-w-0 transition-opacity duration-200 ${picker() ? 'pointer-events-none opacity-0' : ''}`}
         aria-hidden={picker() ? 'true' : 'false'}
         inert={picker() !== null}
       >
@@ -154,7 +154,7 @@ export function MonthCalendar(props: {
         </div>
       </div>
       <div
-        class={`col-start-1 row-start-1 transition-opacity duration-200 ${picker() ? '' : 'pointer-events-none opacity-0'}`}
+        class={`col-start-1 row-start-1 min-w-0 transition-opacity duration-200 ${picker() ? '' : 'pointer-events-none opacity-0'}`}
         aria-hidden={picker() ? 'false' : 'true'}
         inert={picker() === null}
       >

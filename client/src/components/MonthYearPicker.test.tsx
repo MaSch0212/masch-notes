@@ -101,9 +101,7 @@ describe('MonthYearPicker', () => {
     const user = userEvent.setup();
     const { onSelect } = show('en', { latest: '2026-10-17' });
     await openPicker(user);
-    await user.click(
-      screen.getByRole('button', { name: /Latest entry: Saturday, 17 October 2026/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Latest entry: Oct 17, 2026/ }));
     expect(onSelect).toHaveBeenCalledWith('2026-10-17');
   });
 

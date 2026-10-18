@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, CornerDownLeft } from 'lucide-solid';
 import { For, Show } from 'solid-js';
 import type { MonthCount } from '../api/models/month-count';
-import { formatLong, parseIsoDate } from '../lib/dates';
+import { parseIsoDate } from '../lib/dates';
 import { useI18n } from '../lib/i18n';
 
 export type PickerView = 'months' | 'years';
@@ -202,7 +202,7 @@ export function MonthYearPicker(props: {
           </For>
         </div>
       </Show>
-      <div class="mt-3 flex items-center justify-between gap-2">
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <button type="button" class={linkBtn} onClick={() => props.onBack()}>
           <CornerDownLeft class="size-3.5" aria-hidden="true" />
           {t('diary.picker.back')}
@@ -215,7 +215,11 @@ export function MonthYearPicker(props: {
               onClick={() => props.onLatest(latest())}
             >
               <span class="truncate">
-                {t('diary.picker.latest', { date: formatLong(parseIsoDate(latest()), locale()) })}
+                {t('diary.picker.latest', {
+                  date: new Intl.DateTimeFormat(locale(), { dateStyle: 'medium' }).format(
+                    parseIsoDate(latest()),
+                  ),
+                })}
               </span>
             </button>
           )}
