@@ -86,12 +86,14 @@ Tests live next to the code (`*_test.go`, `*.test.ts(x)`).
 ### Task 1: Workspace scaffold and tooling
 
 **Files:**
+
 - Create: `/package.json`, `/pnpm-workspace.yaml`, `/.node-version`, `/.gitattributes`, `/renovate.json`, `/.oxlintrc.json`, `/.oxfmtrc.json`, `/README.md` (skeleton)
 - Create: `/server/go.mod`, `/server/.golangci.yml`, `/server/cmd/maschnotes/main.go` (temporary `func main() {}`)
 - Create: `/client/package.json`, `/client/index.html`, `/client/vite.config.ts`, `/client/tsconfig.json`, `/client/vitest.config.ts`, `/client/src/main.tsx`, `/client/src/App.tsx`, `/client/src/index.css`, `/client/src/smoke.test.ts`
 - Modify: `/.gitignore` (add `node_modules/`, `client/dist/`, `server/internal/web/dist/*` except `.gitkeep`/`index.html` placeholder, `data/`)
 
 **Interfaces:**
+
 - Produces root scripts: `generate`, `generate:check`, `lint`, `format`, `format:check`, `test`, `build`, `dev`; client scripts `dev`, `build`, `test`, `lint`, `format`, `typecheck`; Go invoked as `go -C server …`.
 
 - [ ] **Step 1:** `pnpm-workspace.yaml` with `packages: [client, tools/*]` and `minimumReleaseAge: 2880`; root `package.json` with `"packageManager": "pnpm@<latest>"` (look up with `npm view pnpm version`), `"engines": {"node": ">=24"}`, `"private": true`. `.gitattributes`: `* text=auto eol=lf`.
@@ -104,38 +106,40 @@ Tests live next to the code (`*_test.go`, `*.test.ts(x)`).
 ### Task 2: OpenAPI spec and code generation
 
 **Files:**
+
 - Create: `/api/openapi.yaml`, `/tools/codegen/package.json`, `/tools/codegen/generate.ts`
 - Generated: `/server/internal/api/**`, `/client/src/api/**`
 
 **Interfaces:**
+
 - Produces (OpenAPI 3.1, server URL `/api`, global security `bearer` (http bearer) OR `apiKey` (query `apikey`); operations marked `security: []` are public). Tags → generated Go interfaces `AuthService`, `UserService`, `NotebooksService`, `DayRatingsService`, `ApiKeysService`, `CryptoService`, `AiService` and TS clients with the same tag names.
 
-| Tag | Op ID | Method + path | Request | Responses |
-|---|---|---|---|---|
-| Auth | getConfig | GET /config (public) | — | 200 `AppConfig {registrationEnabled: bool, aiEnabled: bool}` |
-| Auth | prelogin | POST /auth/prelogin (public) | `PreloginRequest {username}` | 200 `PreloginResponse {scheme: "legacy"\|"v2", kdfSalt?: byte(b64), kdfIterations?: int}` |
-| Auth | login | POST /auth/login (public) | `LoginRequest {username, password?, authKey?: b64, stayLoggedIn: bool}` | 200 `LoginResponse {token, expiresAt: date-time, user: User, scheme, wrappedKey?: b64, migration?: MigrationInfo}`; 401 Error |
-| Auth | register | POST /auth/register (public) | `RegisterRequest {username, authKey, kdfSalt, kdfIterations, wrappedKey, givenName, surname, email}` | 201 LoginResponse; 403 (disabled); 409 (`usernameTaken`) |
-| Auth | checkToken | GET /auth/check | — | 204 |
-| Auth | changePassword | POST /auth/password | `ChangePasswordRequest {oldAuthKey, newAuthKey, kdfSalt, kdfIterations, wrappedKey}` | 204; 401 `wrongPassword`; 409 `migrationRequired` |
-| User | getUser / updateUser | GET, PUT /user | `UpdateUserRequest {givenName, surname, email}` | 200 `User {id: int64, username, givenName, surname, email}` |
-| Notebooks | listNotebooks / createNotebook | GET, POST /notebooks | `NotebookInput {name, isDiary}` | 200 `Notebook[] {id, name, isDiary}` / 201 Notebook |
-| Notebooks | getNotebook / renameNotebook / deleteNotebook | GET, PUT, DELETE /notebooks/{notebookId} | `RenameNotebookRequest {name}` | 200 / 200 / 204; 404 |
-| Notebooks | listEntries | GET /notebooks/{notebookId}/entries?from&to&includeContent | query `from`,`to`: date (optional), `includeContent`: bool | 200 `NotebookEntry[] {id, name?, category?, date?: date, encVersion: int, content?: b64}` |
-| Notebooks | createEntry | POST /notebooks/{notebookId}/entries | `EntryInput {name?, category?, date?, content: b64}` | 201 NotebookEntry; 409 `ConflictError {code: "entryExists", entryId}` (diary date taken) |
-| Notebooks | getEntry / updateEntry / deleteEntry | GET, PUT, DELETE /notebooks/{notebookId}/entries/{entryId} | EntryInput | 200 / 200 / 204 |
-| Notebooks | listCategories | GET /notebooks/{notebookId}/categories | — | 200 `string[]` |
-| DayRatings | listRatings | GET /day-ratings?from&to | dates (required) | 200 `DayRating[] {date, rating}` |
-| DayRatings | setRating / clearRating | PUT, DELETE /day-ratings/{date} | `RatingInput {rating: 0..4}` | 200 DayRating / 204 |
-| ApiKeys | listApiKeys / createApiKey / deleteApiKey | GET, POST /api-keys; DELETE /api-keys/{keyId} | `ApiKeyInput {name}` | 200 `ApiKey[] {id, name, createdAt}` / 201 `CreatedApiKey {key, apiKey}` / 204 |
-| Crypto | getMigration | GET /crypto/migration | — | 200 `MigrationInfo {status: "none"\|"migrating"\|"done", legacySalt?: b64, kdfSalt?, kdfIterations?, wrappedKey?, totalEntries: int, migratedEntries: int}` |
-| Crypto | startMigration | POST /crypto/migration/start | `StartMigrationRequest {kdfSalt, kdfIterations, wrappedKey, authKey}` | 200 MigrationInfo (existing row returned unchanged on resume) |
-| Crypto | listPendingEntries | GET /crypto/migration/pending?limit (default 50, max 200) | — | 200 `PendingEntry[] {id, notebookId, notebookName, name?, date?, content: b64}` |
-| Crypto | uploadMigratedEntries | POST /crypto/migration/entries | `MigratedEntry[] {id, content: b64}` | 204 |
-| Crypto | skipEntries | POST /crypto/migration/skip | `SkipEntriesRequest {entryIds: int64[]}` | 204 |
-| Crypto | completeMigration | POST /crypto/migration/complete | — | 204; 409 `migrationIncomplete` |
-| Ai | createAiJob | POST /ai/jobs | multipart `audio` (binary), `kind` (`diary`\|`notebook`), `date?`, `title?` | 202 `AiJobCreated {jobId}`; 404 `aiDisabled`; 413 `audioTooLarge` |
-| Ai | getAiJob / cancelAiJob | GET, DELETE /ai/jobs/{jobId} | — | 200 `AiJob {jobId, status: queued\|transcribing\|composing\|done\|failed\|cancelled, result?: AiResult {text, mood?: int\|null, title?}, error?: string}` / 204 |
+| Tag        | Op ID                                         | Method + path                                              | Request                                                                                              | Responses                                                                                                                                                       |
+| ---------- | --------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth       | getConfig                                     | GET /config (public)                                       | —                                                                                                    | 200 `AppConfig {registrationEnabled: bool, aiEnabled: bool}`                                                                                                    |
+| Auth       | prelogin                                      | POST /auth/prelogin (public)                               | `PreloginRequest {username}`                                                                         | 200 `PreloginResponse {scheme: "legacy"\|"v2", kdfSalt?: byte(b64), kdfIterations?: int}`                                                                       |
+| Auth       | login                                         | POST /auth/login (public)                                  | `LoginRequest {username, password?, authKey?: b64, stayLoggedIn: bool}`                              | 200 `LoginResponse {token, expiresAt: date-time, user: User, scheme, wrappedKey?: b64, migration?: MigrationInfo}`; 401 Error                                   |
+| Auth       | register                                      | POST /auth/register (public)                               | `RegisterRequest {username, authKey, kdfSalt, kdfIterations, wrappedKey, givenName, surname, email}` | 201 LoginResponse; 403 (disabled); 409 (`usernameTaken`)                                                                                                        |
+| Auth       | checkToken                                    | GET /auth/check                                            | —                                                                                                    | 204                                                                                                                                                             |
+| Auth       | changePassword                                | POST /auth/password                                        | `ChangePasswordRequest {oldAuthKey, newAuthKey, kdfSalt, kdfIterations, wrappedKey}`                 | 204; 401 `wrongPassword`; 409 `migrationRequired`                                                                                                               |
+| User       | getUser / updateUser                          | GET, PUT /user                                             | `UpdateUserRequest {givenName, surname, email}`                                                      | 200 `User {id: int64, username, givenName, surname, email}`                                                                                                     |
+| Notebooks  | listNotebooks / createNotebook                | GET, POST /notebooks                                       | `NotebookInput {name, isDiary}`                                                                      | 200 `Notebook[] {id, name, isDiary}` / 201 Notebook                                                                                                             |
+| Notebooks  | getNotebook / renameNotebook / deleteNotebook | GET, PUT, DELETE /notebooks/{notebookId}                   | `RenameNotebookRequest {name}`                                                                       | 200 / 200 / 204; 404                                                                                                                                            |
+| Notebooks  | listEntries                                   | GET /notebooks/{notebookId}/entries?from&to&includeContent | query `from`,`to`: date (optional), `includeContent`: bool                                           | 200 `NotebookEntry[] {id, name?, category?, date?: date, encVersion: int, content?: b64}`                                                                       |
+| Notebooks  | createEntry                                   | POST /notebooks/{notebookId}/entries                       | `EntryInput {name?, category?, date?, content: b64}`                                                 | 201 NotebookEntry; 409 `ConflictError {code: "entryExists", entryId}` (diary date taken)                                                                        |
+| Notebooks  | getEntry / updateEntry / deleteEntry          | GET, PUT, DELETE /notebooks/{notebookId}/entries/{entryId} | EntryInput                                                                                           | 200 / 200 / 204                                                                                                                                                 |
+| Notebooks  | listCategories                                | GET /notebooks/{notebookId}/categories                     | —                                                                                                    | 200 `string[]`                                                                                                                                                  |
+| DayRatings | listRatings                                   | GET /day-ratings?from&to                                   | dates (required)                                                                                     | 200 `DayRating[] {date, rating}`                                                                                                                                |
+| DayRatings | setRating / clearRating                       | PUT, DELETE /day-ratings/{date}                            | `RatingInput {rating: 0..4}`                                                                         | 200 DayRating / 204                                                                                                                                             |
+| ApiKeys    | listApiKeys / createApiKey / deleteApiKey     | GET, POST /api-keys; DELETE /api-keys/{keyId}              | `ApiKeyInput {name}`                                                                                 | 200 `ApiKey[] {id, name, createdAt}` / 201 `CreatedApiKey {key, apiKey}` / 204                                                                                  |
+| Crypto     | getMigration                                  | GET /crypto/migration                                      | —                                                                                                    | 200 `MigrationInfo {status: "none"\|"migrating"\|"done", legacySalt?: b64, kdfSalt?, kdfIterations?, wrappedKey?, totalEntries: int, migratedEntries: int}`     |
+| Crypto     | startMigration                                | POST /crypto/migration/start                               | `StartMigrationRequest {kdfSalt, kdfIterations, wrappedKey, authKey}`                                | 200 MigrationInfo (existing row returned unchanged on resume)                                                                                                   |
+| Crypto     | listPendingEntries                            | GET /crypto/migration/pending?limit (default 50, max 200)  | —                                                                                                    | 200 `PendingEntry[] {id, notebookId, notebookName, name?, date?, content: b64}`                                                                                 |
+| Crypto     | uploadMigratedEntries                         | POST /crypto/migration/entries                             | `MigratedEntry[] {id, content: b64}`                                                                 | 204                                                                                                                                                             |
+| Crypto     | skipEntries                                   | POST /crypto/migration/skip                                | `SkipEntriesRequest {entryIds: int64[]}`                                                             | 204                                                                                                                                                             |
+| Crypto     | completeMigration                             | POST /crypto/migration/complete                            | —                                                                                                    | 204; 409 `migrationIncomplete`                                                                                                                                  |
+| Ai         | createAiJob                                   | POST /ai/jobs                                              | multipart `audio` (binary), `kind` (`diary`\|`notebook`), `date?`, `title?`                          | 202 `AiJobCreated {jobId}`; 404 `aiDisabled`; 413 `audioTooLarge`                                                                                               |
+| Ai         | getAiJob / cancelAiJob                        | GET, DELETE /ai/jobs/{jobId}                               | —                                                                                                    | 200 `AiJob {jobId, status: queued\|transcribing\|composing\|done\|failed\|cancelled, result?: AiResult {text, mood?: int\|null, title?}, error?: string}` / 204 |
 
 Also under `components.schemas` (not on any path; for generated types): `WsClientMessage {type: "auth", token}`, `WsServerMessage {type: "authOk"|"error"|"aiJob", job?: AiJob, error?: string}`, `Error {code, message}`. Every operation declares `default: Error`.
 
@@ -144,7 +148,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
   - Go: `outputDir: 'server/internal'`, `clearOutputDir: false`, `.useType(GoModelsGenerator, {modulePath: 'github.com/MaSch0212/masch-notes/server/internal', packagePath: 'api'}).useType(GoServersGenerator, {…same, basePath: '/api'})`. Delete `server/internal/api` before the run (it must not clear sibling packages).
   - TS: `outputDir: 'client/src/api'`, `.useType(TypeScriptModelsGenerator).useType(TypeScriptFetchClientsGenerator)`.
   - Then run `gofmt -l` sanity and `oxfmt client/src/api`.
-  Root script `generate` → `pnpm --filter codegen start`; `generate:check` → generate then `git diff --exit-code -- server/internal/api client/src/api`.
+    Root script `generate` → `pnpm --filter codegen start`; `generate:check` → generate then `git diff --exit-code -- server/internal/api client/src/api`.
 - [ ] **Step 3: Verify** `pnpm generate && go -C server build ./... && pnpm --filter client typecheck` succeed. Then list the generated Go service interfaces/method names and TS client class/method names in the commit message body, so later tasks can look them up.
 - [ ] **Step 4:** If goast cannot express something (e.g. multipart field, multiple security schemes), keep the spec correct, work around it in hand-written code, and write the gap into `docs/goast-notes.md` for Marc.
 - [ ] **Step 5: Commit** `feat(api): hand-written OpenAPI spec and goast code generation`.
@@ -154,6 +158,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 **Files:** Create `server/internal/config/config.go`, `server/internal/config/config_test.go`
 
 **Interfaces:**
+
 - Produces `type Config struct { Port int; DataDir string; JWTKey []byte /* nil if unset */; BasePath string; AllowRegistration bool; AI AIConfig }`, `type AIConfig struct { WhisperURL, WhisperLanguage, LLMURL, LLMModel, PromptFile string; LLMThink bool; MaxAudioBytes int64; Timeout time.Duration }`, `func (a AIConfig) Enabled() bool`, `func Load(getenv func(string) string) (Config, error)`.
 
 - [ ] **Step 1: Failing tests** `TestLoadDefaults` (empty env → Port 80, DataDir "data", AllowRegistration true, WhisperLanguage "auto", MaxAudioBytes 50<<20, Timeout 10m, AI.Enabled() false); `TestLoadContainerDataDir` (`DOTNET_RUNNING_IN_CONTAINER=true` → "/data"; `DATA_DIR` wins over it); `TestLoadAliases` (`path-base=/MaSchNotes/` → BasePath "/MaSchNotes"; `PathBase` same; `JWT__key=abc` → JWTKey "abc"; `BASE_PATH`/`JWT_KEY` win over aliases); `TestAIEnabledNeedsAllThree`; `TestLoadInvalidPort` → error.
@@ -166,6 +171,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 **Files:** Create `server/internal/db/{db.go,schema.sql,migrate.go,dates.go}` + `db_test.go`, `dates_test.go`, `migrate_test.go`; test fixture `server/internal/db/testdata/legacy_schema.sql` (the exact production `sqlite_master` DDL incl. backtick tables and `UQ_categories_notebookid_name` index — copy from `node -e` dump of `D:\temp\maschnotes.db` copy).
 
 **Interfaces:**
+
 - Produces `func Open(path string) (*sql.DB, error)` (driver `sqlite`, DSN pragmas `foreign_keys(1)`, `journal_mode(WAL)`, `busy_timeout(5000)`; `SetMaxOpenConns(1)`), `func Migrate(ctx context.Context, db *sql.DB, dbPath string, now func() time.Time) error`, `func ParseTime(s string) (time.Time, error)`, `func ParseNullTime(ns sql.NullString) (*time.Time, error)`, `func FormatDate(t time.Time) string`, `func FormatTimestamp(t time.Time) string`, `func DateOnly(s string) (time.Time, error)` (API `yyyy-MM-dd` → midnight UTC-less civil date).
 - `schema.sql` = original `CreateTables.sql` verbatim. Migration 1 per spec §6: `userkeys` table (plus column `pendingauthhash TEXT NULL` holding the new argon2id hash during migration); `notebookentries` columns `encversion INTEGER NOT NULL DEFAULT 1`, `contentv2 BLOB NULL`, `migrationskipped INTEGER NOT NULL DEFAULT 0`.
 
@@ -179,6 +185,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 **Files:** Create `server/internal/auth/{legacy.go,argon.go,token.go}` + tests.
 
 **Interfaces:**
+
 - `func VerifyLegacyHash(password, stored string) bool` (empty stored + empty password → true), `func NewLegacyHash(password string) string` (test helper use only; 8-byte salt, 24-byte hash, 5000 it.), `func ParseLegacyKeyParams(v string) (salt []byte, err error)` (expects 4 parts, `pbkdf2`, `5000`, b64 salt, `32`).
 - `func HashAuthKey(authKey []byte) (string, error)` (argon2id m=65536 KiB, t=3, p=1, 16-byte salt, 32-byte key, PHC string `argon2id$v=19$m=65536,t=3,p=1$<b64raw salt>$<b64raw hash>`), `func VerifyAuthKey(authKey []byte, stored string) bool` (constant-time).
 - `type Tokens struct{…}`, `func NewTokens(key []byte, now func() time.Time) *Tokens`, `func (t *Tokens) Issue(userID int64, stayLoggedIn bool) (token string, expires time.Time, err error)` (HS512, claims `sub`=userID, `exp`; 365 days vs 2 hours), `func (t *Tokens) Parse(token string) (userID int64, err error)`.
@@ -193,6 +200,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 **Files:** Create `server/internal/store/{store.go,users.go,notebooks.go,entries.go,ratings.go,apikeys.go,userkeys.go,migration.go}` + `store_test.go` (helper `newTestStore(t)` → migrated temp DB), per-file tests.
 
 **Interfaces (all methods take `ctx context.Context` first; `ErrNotFound`, `ErrConflict` sentinel errors):**
+
 - `type Store struct{ DB *sql.DB }`; `func (s *Store) Tx(ctx, fn func(*Store) error) error`.
 - Users: `type Account struct{ UserID int64; Username, PasswordHash string }`, `type User struct{ ID int64; Username, GivenName, Surname, Email string }`; `AccountByUsername(name) (Account, error)` (NOCASE), `UserByID(id) (User, error)` (username = first account name), `UsernameTaken(name) (bool, error)`, `CreateUser(username, passwordHash string, u User) (int64, error)`, `UpdateUser(u User) error`, `SetPasswordHash(userID int64, hash string) error`.
 - Notebooks: `type Notebook struct{ ID, UserID int64; Name string; IsDiary bool }`; `ListNotebooks(userID)`, `GetNotebook(id) (Notebook, error)`, `CreateNotebook(userID, name, isDiary) (Notebook, error)`, `RenameNotebook(id, name) error`, `DeleteNotebook(id) error`.
@@ -211,6 +219,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 **Files:** Create `server/internal/auth/{middleware.go,context.go}`, `server/internal/service/{errors.go,auth.go,user.go}` + tests (`httptest` against the generated `api.Register…Routes`).
 
 **Interfaces:**
+
 - `func WithUserID(ctx, id int64) context.Context`, `func UserID(ctx) (int64, bool)`.
 - `func Middleware(tokens *Tokens, apiKeys func(ctx, key string) (int64, error), public func(r *http.Request) bool) func(http.Handler) http.Handler` — Bearer header or `apikey` query param (case-insensitive name like the old `ContainsKey("apikey")`); 401 `Error{code:"unauthorized"}` otherwise; public = getConfig, prelogin, login, register (match by method+path after base path).
 - `service.Error{Status int; Code, Message string}` implementing `error`; `func WriteError(w http.ResponseWriter, r *http.Request, err error)` used as the generated server's error handler (`api.WithErrorHandler`); maps `store.ErrNotFound` → 404 `notFound`, generated `*api.RequestError` → 400 `invalidRequest`, unknown → 500 `internal` (logged with `slog`).
@@ -246,6 +255,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `server/internal/ws/{hub.go,handler.go}` + `ws_test.go`.
 
 **Interfaces:**
+
 - `type Hub struct{…}`, `func NewHub() *Hub`, `func (h *Hub) Publish(userID int64, msg api.WsServerMessage)`, `func Handler(h *Hub, tokens *auth.Tokens, log *slog.Logger) http.Handler` mounted at `/api/ws` **outside** the auth middleware.
 - Protocol: client must send `WsClientMessage{type:"auth"}` within 10 s → server replies `authOk` or `error` + close 4401. Server pings every 30 s; per-connection send buffer 16, slow consumers are dropped. Origin check: same host (`websocket.AcceptOptions{}` default) — the dev proxy forwards the host.
 
@@ -257,6 +267,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `server/internal/ai/{whisper.go,ollama.go,prompt.go,prompt.txt,jobs.go}` + tests; `server/internal/service/ai.go` + test.
 
 **Interfaces:**
+
 - `type Transcriber interface{ Transcribe(ctx, audio io.Reader, filename string) (string, error) }`; `NewWhisper(baseURL, language string, client *http.Client) Transcriber` → `POST {base}/inference` multipart `file`, `response_format=json`, `language` → `{text}`.
 - `type Composer interface{ Compose(ctx, in ComposeInput) (ComposeResult, error) }`, `type ComposeInput struct{ Kind, Transcript, Title string; Date *time.Time; Locale string }`, `type ComposeResult struct{ Text string; Mood *int; Title string }`; `NewOllama(baseURL, model string, think bool, systemPrompt string, client *http.Client) Composer` → `POST {base}/api/chat` `{model, stream:false, think, format:<JSON schema {text:string, mood:integer|null 0..4, title:string}>, options:{temperature:0.3}, messages:[system, user]}`; user message contains kind, date and the transcript in a fenced block.
 - `func DefaultPrompt() string` (embedded `prompt.txt`, content per spec §9 bullet list; English instructions, says "answer in the transcript's language"), `func LoadPrompt(path string) (string, error)`.
@@ -272,6 +283,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `server/internal/web/static.go` + test, `server/internal/web/dist/index.html` (placeholder), modify `server/cmd/maschnotes/main.go`; create `server/cmd/legacyfixture/main.go`.
 
 **Interfaces:**
+
 - `func NewSPA(dist fs.FS, basePath string) http.Handler` — serves files; unknown non-`/api` paths → `index.html`; rewrites `<base href="…">` to the effective base path and, for `manifest.webmanifest`, `scope`/`start_url`; effective base = `BASE_PATH` or matched `X-Forwarded-Path` prefix (strip it from the request path like the old middleware). Long cache for `assets/*`, `no-cache` for `index.html`.
 - `main.go`: load config, ensure data dir, JWT key (env or `DATA_DIR/jwt.key`, 64 random bytes, 0600), open + migrate DB, build services, `mux := http.NewServeMux()`; register generated routes with `api.WithMiddleware(authMiddleware)` + `api.WithErrorHandler(service.WriteError)`; `/api/ws`; SPA on `/`; wrap all in base-path stripping; graceful shutdown on SIGINT/SIGTERM; `slog` JSON logs.
 - `legacyfixture -db <path> -user legacy -password legacy-pass -entries 30`: inserts a user with `NewLegacyHash`, settings −1 params, a diary with N entries (half `yyyy-MM-dd HH:mm:ss` dates, half `o` format, one duplicate date, one regular notebook entry with category) encrypted with the legacy scheme (Go AES-CBC), and ratings.
@@ -286,6 +298,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `client/public/manifest.webmanifest` (name "MaSch Notes", `display: standalone`, theme colours, icons) + copy `apple-icon.png`/`apple-splash.jpg` from `src/MaSchNotes.Client/src/assets/` and add a `favicon.svg` (Lucide `BookHeart` on accent); link them in `index.html` with `<base href="/">`. Create `client/src/index.css` (Tailwind theme), `client/src/lib/{api.ts,dates.ts,errors.ts,base64.ts}`, `client/src/lib/i18n/{index.ts,en.ts,de.ts}`, `client/src/components/ui/*`, `client/src/App.tsx` (routes), tests `dates.test.ts`, `i18n.test.ts`, `base64.test.ts`, `ui/Modal.test.tsx`.
 
 **Interfaces:**
+
 - Theme tokens as CSS variables in `@theme` (light) and overridden in `@media (prefers-color-scheme: dark)`: `--color-bg`, `--color-panel`, `--color-rail`, `--color-text`, `--color-muted`, `--color-line`, `--color-accent` (#0f9d76 / dark #2fc59a), `--color-accent-fg`, `--color-mood-0..4` (#e5484d, #f2994a, #f2c94c, #8bd17c, #27ae60). Custom variants: `@custom-variant medium (@media (min-width: 640px))`, `@custom-variant wide (@media (min-width: 1100px) and (min-height: 640px))`.
 - `detectLocale(languages: readonly string[]): 'de' | 'en'`; `I18nProvider`, `useI18n(): { t: Translator<Dict>, locale: 'de'|'en' }`; `en.ts` exports `const en = {…}` and `type Dict = typeof en`; `de.ts` exports `const de: Dict`. Includes `errors.<code>` keys for every server error code used in Tasks 7–11.
 - Dates: `toIsoDate(d: Date): string` (local), `parseIsoDate(s: string): Date` (local midnight), `addDays(d, n)`, `startOfWeek(d)` (Monday), `monthGrid(year, month): Date[][]` (6 rows × 7, Monday first), `formatLong(d, locale)` (weekday + day + month + year via `Intl.DateTimeFormat`).
@@ -302,6 +315,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `client/src/lib/crypto/{legacy.ts,v2.ts,key-store.ts}` + `legacy.test.ts`, `v2.test.ts`, `key-store.test.ts`; read vectors from `server/internal/auth/testdata/vectors.json` (written in Task 5).
 
 **Interfaces:**
+
 - legacy: `deriveLegacyEncryptPass(username: string, password: string): Promise<string>`, `deriveLegacyKey(encryptPass: string, saltB64: string): Promise<CryptoKey>`, `decryptLegacy(key: CryptoKey, contentB64: string): Promise<string>` (AES-CBC, IV UTF-8 `d6c6b426090a5ae9`).
 - v2: `randomSalt(): Uint8Array` (16), `deriveKeys(password: string, salt: Uint8Array, iterations: number): Promise<{ authKey: string /*b64*/; wrapKey: CryptoKey }>`, `generateDataKey(): Promise<CryptoKey>` (extractable only for wrapping), `wrapDataKey(wrapKey, dataKey): Promise<string>`, `unwrapDataKey(wrapKey, wrappedB64): Promise<CryptoKey>` (non-extractable, usages encrypt/decrypt), `encryptContent(dataKey, text): Promise<string>`, `decryptContent(dataKey, b64): Promise<string>`. `KDF_ITERATIONS = 600_000`.
 - key-store (IndexedDB db `maschnotes`, store `keys`, record `{ id: 'data', key: CryptoKey, expiresAt: number }`): `saveDataKey(key, expiresAt: Date)`, `loadDataKey(): Promise<CryptoKey | null>` (deletes + returns null when expired), `clearDataKey()`.
@@ -314,6 +328,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `client/src/lib/session.ts` + test, `client/src/pages/{LoginPage.tsx,RegisterPage.tsx}` + `LoginPage.test.tsx`.
 
 **Interfaces:**
+
 - `createSession()` store exported as `session`: `state: { token, user, expiresAt, dataKey: CryptoKey | null, migration: MigrationInfo | null, legacyKeys: CryptoKey[] }`; `login(username, password, stayLoggedIn): Promise<'ok' | 'migrate'>` (prelogin → v2 path or legacy path; legacy path derives `legacyKeys` = [key from typed username, key from `user.username` if it differs] when `legacySalt` present); `register(input)`; `restore(): Promise<boolean>` (token from localStorage + `checkToken` + `loadDataKey`; missing key → logout); `logout()` (clears localStorage token, `clearDataKey`); `changePassword(old, next): Promise<void>` (prelogin for salt/iterations, derive old authKey, new salt, rewrap current dataKey).
 - Login page: username, password, "stay logged in", error text from `errors.invalidCredentials`; link to register only if `config.registrationEnabled`. Register page: given name, surname, email, username, password + confirm; warns that a forgotten password means losing all texts.
 
@@ -325,6 +340,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 **Files:** Create `client/src/lib/migration.ts` + test, `client/src/pages/MigrationModal.tsx` + test.
 
 **Interfaces:**
+
 - `runMigration(opts: { api: Api; password: string; legacyKeys: CryptoKey[]; signal?: AbortSignal; onProgress(p: { done: number; total: number }): void }): Promise<{ status: 'done' } | { status: 'failed'; entries: PendingEntry[] }>` — start (or resume: derive wrap key from returned salt and unwrap returned key), loop `listPendingEntries(50)`: decrypt with each legacy key in order until one succeeds (padding/UTF-8 error = failure, also reject output containing U+FFFD), encrypt v2, upload batch; collect failures and continue past them (exclude failed ids from the next page request by skipping them client-side; stop when a page contains only already-failed ids); if failures → return `failed`; else `completeMigration`, `saveDataKey`, return `done`.
 - `skipAndComplete(api, ids)`.
 - Modal (blocking, cannot be dismissed): explanation text, progress bar `done/total`, "you can close the tab, progress is kept" hint, failure list (notebook name + date/title) with "Skip these entries" (confirm dialog) and "Log out".
@@ -347,6 +363,7 @@ Layout per spec §10 and `mockups/diary-layouts.html`: wide → Sidebar with "Di
 **Files:** Create `client/src/components/{MoodPicker.tsx,MonthCalendar.tsx,WeekStrip.tsx,EntryEditor.tsx}`, `client/src/pages/DiaryPage.tsx`, `client/src/lib/entries.ts` (decrypt/encrypt + save queue) + tests `entries.test.ts`, `DiaryPage.test.tsx`, `MonthCalendar.test.tsx`.
 
 **Interfaces:**
+
 - `createEntrySaver(opts: { save(content: string): Promise<void>; debounceMs: number })` → `{ change(text), flush(): Promise<void>, status: Accessor<'idle'|'saving'|'saved'|'error'> }`.
 - `MonthCalendar(props: { month: Date; selected: string; ratings: Map<string, number>; entryDays: Set<string>; onSelect(date: string); onMonthChange(d: Date) })`; `WeekStrip` same data for the selected week; `MoodPicker(props: { value: number | null; onChange(v: number | null) })` (Lucide `Angry, Frown, Meh, Smile, Laugh`, coloured with mood tokens; clicking the current value clears it); `EntryEditor(props: { value; onInput; placeholder; readOnly? })` auto-growing textarea, `max-w-[70ch]`.
 - DiaryPage: route `/diary/:notebookId/:date?` (default today); loads ratings for visible month and entry dates (`listEntries(from,to,includeContent=false)`); loads the selected day's entries with content and decrypts (encVersion 2 → data key; encVersion 1 shouldn't occur after migration → show "cannot decrypt" placeholder); shows stacked editors if several; empty day → editor that creates on first non-empty save (409 → reload and update); delete entry with confirm; "Saved · encrypted" status with `Lock` icon. Wide: calendar left of editor; medium/phone: WeekStrip + month popover button (`CalendarDays`).
@@ -379,6 +396,7 @@ Sections: Profile (given name, surname, email → `updateUser`), Change password
 **Files:** Create `client/src/lib/audio/{recorder.ts,wav.ts}`, `client/src/lib/{ws.ts,ai-jobs.ts}`, `client/src/components/{RecordButton.tsx,RecordPopover.tsx}` + tests `wav.test.ts`, `ws.test.ts`, `ai-jobs.test.ts`, `RecordPopover.test.tsx`; wire into `DiaryPage` and `NotebookPage` (only when `config.aiEnabled`).
 
 **Interfaces:**
+
 - `encodeWav(samples: Float32Array, sampleRate: number): Blob` (PCM16 mono, 44-byte header); `toWhisperWav(blob: Blob): Promise<Blob>` (`decodeAudioData` → `OfflineAudioContext(1, ceil(duration*16000), 16000)` render → `encodeWav`).
 - `createRecorder(): { start(): Promise<void>; stop(): Promise<Blob>; cancel(): void; elapsedMs: Accessor<number>; recording: Accessor<boolean> }` (MediaRecorder, `audio/webm;codecs=opus` else `audio/mp4`).
 - `createWsClient(opts: { url: string; getToken(): string | null }): { subscribe(fn: (m: WsServerMessage) => void): () => void; close(): void }` — connects lazily, sends auth, reconnects with backoff (1 s → 30 s).

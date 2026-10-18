@@ -1,9 +1,27 @@
 {
-    "name": "masch-notes",
-    "version": "0.0.0",
-    "private": true,
-    "scripts": {
-        "build": "pwsh -f build/Build-Docker.ps1",
-        "push": "pwsh -f build/Push-Docker.ps1"
-    }
+  "name": "masch-notes",
+  "private": true,
+  "scripts": {
+    "generate": "pnpm --filter codegen start",
+    "generate:check": "pnpm generate && git diff --exit-code -- server/internal/api client/src/api",
+    "dev": "pnpm --filter client dev",
+    "build": "pnpm --filter client build",
+    "test": "pnpm --filter client test",
+    "lint": "pnpm --filter client lint",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "pnpm --filter client typecheck",
+    "go:test": "go -C server test ./...",
+    "go:lint": "go -C server tool golangci-lint run",
+    "go:fmt": "go -C server tool golangci-lint fmt",
+    "docker:build": "pwsh -File scripts/docker.ps1",
+    "docker:push": "pwsh -File scripts/docker.ps1 -Push"
+  },
+  "devDependencies": {
+    "oxfmt": "0.73.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.14.0"
 }

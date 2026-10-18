@@ -120,21 +120,21 @@ Build the new structure in place; when complete, delete `src/`, `MaSchNotes.sln`
 
 ### Configuration (env vars)
 
-| Var | Default | Meaning |
-|---|---|---|
-| `PORT` | `80` | listen port |
-| `DATA_DIR` | `/data` in container, `./data` otherwise | DB location (`maschnotes.db`) |
-| `JWT_KEY` | — | HMAC secret. If unset, generate one and persist it in `DATA_DIR/jwt.key`. |
-| `BASE_PATH` | `` | optional path prefix |
-| `ALLOW_REGISTRATION` | `true` | registration was open in the old app |
-| `AI_WHISPER_URL` | — | whisper.cpp server base URL (e.g. `https://whisper.example.com`) |
-| `AI_WHISPER_LANGUAGE` | `auto` | passed to whisper |
-| `AI_LLM_URL` | — | Ollama base URL (e.g. `https://ollama.example.com`) |
-| `AI_LLM_MODEL` | — | e.g. `gemma4:12b` |
-| `AI_LLM_THINK` | `false` | Ollama `think` flag |
-| `AI_LLM_PROMPT_FILE` | — | optional override of the built-in system prompt |
-| `AI_MAX_AUDIO_MB` | `50` | upload limit |
-| `AI_TIMEOUT` | `10m` | per-step timeout for whisper / LLM calls |
+| Var                   | Default                                  | Meaning                                                                   |
+| --------------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
+| `PORT`                | `80`                                     | listen port                                                               |
+| `DATA_DIR`            | `/data` in container, `./data` otherwise | DB location (`maschnotes.db`)                                             |
+| `JWT_KEY`             | —                                        | HMAC secret. If unset, generate one and persist it in `DATA_DIR/jwt.key`. |
+| `BASE_PATH`           | ``                                       | optional path prefix                                                      |
+| `ALLOW_REGISTRATION`  | `true`                                   | registration was open in the old app                                      |
+| `AI_WHISPER_URL`      | —                                        | whisper.cpp server base URL (e.g. `https://whisper.example.com`)          |
+| `AI_WHISPER_LANGUAGE` | `auto`                                   | passed to whisper                                                         |
+| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                          |
+| `AI_LLM_MODEL`        | —                                        | e.g. `gemma4:12b`                                                         |
+| `AI_LLM_THINK`        | `false`                                  | Ollama `think` flag                                                       |
+| `AI_LLM_PROMPT_FILE`  | —                                        | optional override of the built-in system prompt                           |
+| `AI_MAX_AUDIO_MB`     | `50`                                     | upload limit                                                              |
+| `AI_TIMEOUT`          | `10m`                                    | per-step timeout for whisper / LLM calls                                  |
 
 AI is "enabled" only when `AI_WHISPER_URL`, `AI_LLM_URL` and `AI_LLM_MODEL` are all set.
 Old names stay accepted as aliases: `path-base` / `PathBase` → `BASE_PATH`; `JWT__key` /
@@ -147,7 +147,7 @@ Old names stay accepted as aliases: `path-base` / `PathBase` → `BASE_PATH`; `J
   = valid (old quirk; keep for legacy accounts only).
 - **Username lookup** is case-insensitive (`COLLATE NOCASE`).
 - **Legacy encrypt pass**: `base64(PBKDF2-SHA1(password = <username>, salt = UTF-8(<password>),
-  5000, 64 bytes))`. The old app used the username *as typed at login*.
+  5000, 64 bytes))`. The old app used the username _as typed at login_.
 - **Legacy encrypt key**: params from `settings` row `(userid, settingid = -1)`, format
   `pbkdf2:5000:<b64 16-byte salt>:32`. Key = `base64(PBKDF2-SHA1(password = encryptPass string,
   salt, 5000, 32))`.
@@ -280,6 +280,7 @@ transcript or result — is stored there. The finished text is encrypted in your
 is saved, like every other entry."
 
 **Prompt** (built-in default, overridable by file). Requirements:
+
 - Input is a raw, possibly messy transcript with filler words, false starts, noise artefacts.
 - Write a well-formed first-person diary entry (or a note, for `kind: notebook`) in the **same
   language** as the transcript; remove fillers/repetition; fix grammar; keep the speaker's tone.
@@ -316,12 +317,14 @@ authoritative) and `mockups/notebook-and-recording.html` (regular notebook view 
 popover; ignore its emoji icons).
 
 Navigation:
-- **Wide (≥ ~1100 px and tall enough)**: left sidebar with groups *Diaries* and *Notebooks*
+
+- **Wide (≥ ~1100 px and tall enough)**: left sidebar with groups _Diaries_ and _Notebooks_
   (user-created, dynamic), "+ New notebook", Settings at the bottom.
 - **Medium (~640–1100 px, or too short for side-by-side)**: slim icon rail.
 - **Phone (< ~640 px)**: bottom tab bar (Diary · Notes · Settings); diary picker in the header.
 
 Diary notebook view:
+
 - Wide: month calendar (cells coloured by mood, dot = has entry, selected day outlined) beside the
   day editor.
 - Medium & phone: mood-coloured **week strip** above a full-width entry; a month button opens the

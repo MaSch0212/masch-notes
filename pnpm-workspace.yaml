@@ -1,0 +1,5 @@
+packages:
+  - client
+  - tools/*
+
+minimumReleaseAge: 2880

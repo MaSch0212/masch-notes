@@ -1,0 +1,14 @@
+{
+  "$schema": "./client/node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "singleQuote": true,
+  "ignorePatterns": [
+    "/src/",
+    "/server/",
+    "/build/",
+    "**/dist/",
+    "pnpm-lock.yaml",
+    "docs/superpowers/specs/mockups/",
+    "client/src/api/"
+  ]
+}
