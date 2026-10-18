@@ -115,4 +115,4 @@ pnpm docker:build   # single-platform image, loaded into the local Docker daemon
 pnpm docker:push    # linux/amd64 + linux/arm64, pushed to the registry
 ```
 
-The script uses `marc-nas:4000` if that host resolves, otherwise `docker.masch212.de`. The image listens on port 80, stores data in `/data` (`VOLUME /data`) and runs as root.
+The registry comes from `-Registry` or the `DOCKER_REGISTRY` environment variable (required for pushing; without it the image is tagged `masch-notes:latest` locally). The image listens on port 80, stores data in `/data` (`VOLUME /data`) and runs as root.

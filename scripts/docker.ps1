@@ -1,18 +1,22 @@
 param(
-    [switch]$Push
+    [switch]$Push,
+    # Registry to tag (and push) the image for, e.g. "registry.example.com". Defaults to $env:DOCKER_REGISTRY.
+    [string]$Registry = $env:DOCKER_REGISTRY
 )
 
 Set-Location "$PSScriptRoot\.."
 
-if ($null -eq (Resolve-DnsName marc-nas -DnsOnly -ErrorAction Ignore)) {
-    $registry = "docker.masch212.de"
+if ([string]::IsNullOrWhiteSpace($Registry)) {
+    if ($Push) {
+        Write-Error "No registry configured. Pass -Registry or set DOCKER_REGISTRY."
+        exit 1
+    }
+    $tag = "masch-notes:latest"
 }
 else {
-    $registry = "marc-nas:4000"
+    $tag = "$($Registry.TrimEnd('/'))/masch-notes:latest"
 }
-Write-Host "Using docker registry $registry"
-
-$tag = "$registry/masch-notes:latest"
+Write-Host "Building $tag"
 
 if ($Push) {
     docker buildx build --platform linux/amd64,linux/arm64 -t $tag --push .

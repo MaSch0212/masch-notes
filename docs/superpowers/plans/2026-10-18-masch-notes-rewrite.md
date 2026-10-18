@@ -14,7 +14,7 @@
 
 - pnpm `minimumReleaseAge: 2880` in `pnpm-workspace.yaml`; `packageManager` = latest pnpm; `engines.node: ">=24"`; `.node-version` = `24`.
 - `renovate.json`: `minimumReleaseAge: "2 days"` for `npm` and `gomod`.
-- Never modify `D:\temp\maschnotes.db`; tests and manual runs use copies.
+- Never modify the production DB copy; tests and manual runs use copies.
 - Generated code (`server/internal/api`, `client/src/api`) is never hand-edited; regenerate with `pnpm generate`.
 - Docker contract: port 80, data dir `/data`, DB `/data/maschnotes.db`, linux/amd64 + linux/arm64, no CGO.
 - Legacy constants: PBKDF2-HMAC-SHA1; encrypt pass = PBKDF2(username, UTF-8(password), 5000, 64 bytes) base64; legacy key = PBKDF2(encryptPass string, salt from settings row −1 `pbkdf2:5000:<b64>:32`, 5000, 32 bytes); AES-256-CBC PKCS7, IV = UTF-8 `d6c6b426090a5ae9`.
@@ -168,7 +168,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 
 ### Task 4: Database open, schema, dates, migrations
 
-**Files:** Create `server/internal/db/{db.go,schema.sql,migrate.go,dates.go}` + `db_test.go`, `dates_test.go`, `migrate_test.go`; test fixture `server/internal/db/testdata/legacy_schema.sql` (the exact production `sqlite_master` DDL incl. backtick tables and `UQ_categories_notebookid_name` index — copy from `node -e` dump of `D:\temp\maschnotes.db` copy).
+**Files:** Create `server/internal/db/{db.go,schema.sql,migrate.go,dates.go}` + `db_test.go`, `dates_test.go`, `migrate_test.go`; test fixture `server/internal/db/testdata/legacy_schema.sql` (the exact production `sqlite_master` DDL incl. backtick tables and `UQ_categories_notebookid_name` index — copy from `node -e` dump of the production DB copy copy).
 
 **Interfaces:**
 
@@ -177,7 +177,7 @@ Also under `components.schemas` (not on any path; for generated types): `WsClien
 
 - [ ] **Step 1: Failing tests:** `TestParseTimeFormats` (`2023-10-22 00:00:00`, `2014-10-07T00:00:00.0000000`, `2020-09-19T11:17:49.4301152Z`, `2021-01-01 10:00:00.1234567` all parse; garbage errors); `TestFormatDate` (`2026-10-18` → `2026-10-18T00:00:00.0000000`); `TestFormatTimestamp` (→ `2026-10-18T09:05:03.1234567Z`); `TestMigrateFreshDB` (empty file → all legacy tables + `userkeys` exist, `user_version`=1, no backup file created); `TestMigrateLegacyDB` (DB built from `testdata/legacy_schema.sql` with a few rows → backup `maschnotes.db.bak-20261018-120000` exists and opens with the same row counts, columns added, old rows have `encversion`=1, `user_version`=1); `TestMigrateIdempotent` (second run: no new backup, no error).
 - [ ] **Step 2:** Run → FAIL. **Step 3:** Implement (`PRAGMA wal_checkpoint(TRUNCATE)` then `VACUUM INTO` the backup path — produces a consistent copy). **Step 4:** Run → PASS.
-- [ ] **Step 5: Verify against prod copy:** copy `D:\temp\maschnotes.db` to a temp dir in a test guarded by env `MASCHNOTES_PROD_COPY` (skip when unset): migrate, assert counts users 5, notebooks 6, notebookentries 1010, dayratings 648, apikeys 2. Run `MASCHNOTES_PROD_COPY=D:/temp/maschnotes.db go -C server test ./internal/db/ -run Prod` → PASS (test copies the file first; never opens the original read-write).
+- [ ] **Step 5: Verify against prod copy:** copy the production DB copy to a temp dir in a test guarded by env `MASCHNOTES_PROD_COPY` (skip when unset): migrate, assert counts users 5, notebooks 6, notebookentries 1010, dayratings 648, apikeys 2. Run `MASCHNOTES_PROD_COPY=<path to prod copy> go -C server test ./internal/db/ -run Prod` → PASS (test copies the file first; never opens the original read-write).
 - [ ] **Step 6: Commit** `feat(server): sqlite open, legacy schema, date formats, versioned migrations with backup`.
 
 ### Task 5: Password/key primitives and tokens
@@ -290,7 +290,7 @@ Rules: every notebook/entry access checks ownership (other user's notebook → 4
 
 - [ ] **Step 1: Failing tests** `TestSPAFallbackAndBaseHref` (`BASE_PATH=/MaSchNotes` → `<base href="/MaSchNotes/">`), `TestSPAForwardedPath` (`X-Forwarded-Path: MaSchNotes`, request `/MaSchNotes/diary` → index with base `/MaSchNotes/`), `TestManifestRewrite`, `TestAPINotFoundNotSPA` (`/api/nope` → 404 JSON).
 - [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: Verify on prod copy:** copy `D:\temp\maschnotes.db` to scratch `data/`, run `go -C server run ./cmd/legacyfixture -db <copy>` then `DATA_DIR=<scratch>/data PORT=8080 go -C server run ./cmd/maschnotes`; `curl localhost:8080/api/config` → JSON; `curl -X POST …/api/auth/prelogin -d '{"username":"legacy"}'` → `legacy`; backup file exists. Stop server.
+- [ ] **Step 5: Verify on prod copy:** copy the production DB copy to scratch `data/`, run `go -C server run ./cmd/legacyfixture -db <copy>` then `DATA_DIR=<scratch>/data PORT=8080 go -C server run ./cmd/maschnotes`; `curl localhost:8080/api/config` → JSON; `curl -X POST …/api/auth/prelogin -d '{"username":"legacy"}'` → `legacy`; backup file exists. Stop server.
 - [ ] **Step 6:** `go -C server tool golangci-lint run` clean. **Commit** `feat(server): SPA serving with base path, wiring, legacy fixture tool`.
 
 ### Task 13: Client foundation (theme, i18n, dates, API wrapper, UI primitives, router)
@@ -412,7 +412,7 @@ Sections: Profile (given name, surname, email → `updateUser`), Change password
 
 - `aiprompttest -audio <file> -whisper <url> -llm <url> -model <m> [-think] [-kind diary] [-date 2026-10-18]` runs `Transcriber` + `Composer` with the real clients (whisper accepts the mp3 directly — verified) and prints transcript, entry text, mood, timings.
 
-- [ ] **Step 1:** Run `go -C server run ./cmd/aiprompttest -audio "D:/SynologyDrive/Dokumente/Audacity/untitled.mp3" -whisper https://whisper.example.com -llm https://ollama.example.com -model gemma4:12b`.
+- [ ] **Step 1:** Run `go -C server run ./cmd/aiprompttest -audio <recording> -whisper <whisper url> -llm <ollama url> -model gemma4:12b`.
 - [ ] **Step 2:** Judge the output against spec §9 (same language — German here; no invented facts: compare each sentence against the transcript; paragraphs at time jumps; fillers removed; mood plausible). Adjust `prompt.txt`, rerun; at least 3 runs of the final prompt for stability. Also compare `-think` once and note speed/quality.
 - [ ] **Step 3:** Save the final transcript + entry + mood into the PR description draft (not into the repo — it's Marc's private diary text).
 - [ ] **Step 4: Commit** `feat(ai): tuned diary prompt and prompt test tool`.
@@ -422,7 +422,7 @@ Sections: Profile (given name, surname, email → `updateUser`), Change password
 **Files:** Create `/Dockerfile`, `/.dockerignore`, `/scripts/docker.ps1`, finish `/README.md`; delete `/src/`, `/MaSchNotes.sln`, `/build/`.
 
 - Dockerfile: stage `client` (`node:24-alpine`, `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm --filter client build`), stage `server` (`golang:1.27-alpine`, copy `client/dist` → `server/internal/web/dist`, `CGO_ENABLED=0 go build -trimpath -ldflags="-s -w"`, cross-compiled via `TARGETOS`/`TARGETARCH` on `--platform=$BUILDPLATFORM`), final `alpine:3` (runs as root like the old image so port 80 and existing `/data` permissions keep working) with `tzdata`, `ca-certificates`, `EXPOSE 80`, `VOLUME /data`, `ENV DATA_DIR=/data`.
-- `scripts/docker.ps1 -Push`: registry `marc-nas:4000` if `Resolve-DnsName marc-nas` works, else `docker.masch212.de`; `docker buildx build --platform linux/amd64,linux/arm64 -t $registry/masch-notes:latest [--push]`. Root scripts `docker:build`, `docker:push`.
+- `scripts/docker.ps1 -Push`: registry from `-Registry` / `DOCKER_REGISTRY`; `docker buildx build --platform linux/amd64,linux/arm64 -t $registry/masch-notes:latest [--push]`. Root scripts `docker:build`, `docker:push`.
 - README: dev setup, scripts, env vars table (copy from spec §6), dependency-age policy, encryption overview, migration notes for Marc (backup file, first-login migration).
 
 - [ ] **Step 1:** `docker build -t masch-notes:test .` → success; run with a **copy** of the prod DB mounted at `/data` plus the legacy fixture and AI env vars pointing to the test servers.

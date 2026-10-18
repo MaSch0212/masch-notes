@@ -11,7 +11,7 @@ a new key-based encryption scheme that makes password changes possible, and a ne
 feature: speak a messy voice note and get a nicely written entry appended.
 
 Marc will point the new Go server at the existing production SQLite file (a copy is at
-`D:\temp\maschnotes.db` for testing — never modify the original). Every existing account, notebook,
+a local copy of the production DB for testing — never modify the original). Every existing account, notebook,
 entry, day rating and API key must keep working. Existing users are moved to the new encryption
 scheme by a guided, crash-safe migration on their first login.
 
@@ -78,8 +78,7 @@ Build the new structure in place; when complete, delete `src/`, `MaSchNotes.sln`
 - Generated code is committed (so Go builds without Node) and regenerated via `pnpm generate`.
   A check script verifies regeneration produces no diff.
 - Root scripts: `generate`, `lint`, `format`, `test`, `build`, `dev` (Go server + Vite with proxy),
-  plus `docker:build` / `docker:push` preserving the old registry logic (marc-nas:4000 if
-  resolvable, else docker.masch212.de).
+  plus `docker:build` / `docker:push` with the registry taken from `-Registry` / `DOCKER_REGISTRY`.
 - Docker image keeps the old contract: port 80 inside the container, data dir `/data`, DB file
   `/data/maschnotes.db`. Builds for linux/amd64 and linux/arm64 (pure-Go SQLite, no CGO).
 
@@ -292,8 +291,8 @@ is saved, like every other entry."
 - Ignore segments that are clearly noise/hallucination (e.g. "[Musik]", "Untertitel …").
 - Return JSON only, matching the schema.
 
-**Prompt test**: run the pipeline against `D:\SynologyDrive\Dokumente\Audacity\untitled.mp3` with
-the test servers (whisper.example.com, ollama.example.com, `gemma4:12b`, think=false); iterate until
+**Prompt test**: run the pipeline against a real diary voice recording provided by Marc with
+Marc's test servers (whisper.cpp and Ollama, `gemma4:12b`, think=false); iterate until
 the entry is clean, faithful, paragraph-split, with a sensible mood. Report transcript → entry to
 Marc.
 
@@ -351,7 +350,7 @@ list, delete; logout).
 - Client: vitest for legacy crypto (crypto-js / .NET vectors), v2 key derivation/wrap/unwrap,
   content v2 round trip, migration runner (resume, failure stop), WAV encoder, date helpers, key
   components.
-- End-to-end on a **copy** of `D:\temp\maschnotes.db`: server starts, backup file is created,
+- End-to-end on a **copy** of a local copy of the production DB: server starts, backup file is created,
   migration 1 applies, all row counts unchanged. A synthetic legacy user with known password and
   entries (written in the legacy format) is migrated end-to-end in the browser and stays readable,
   including a simulated mid-migration abort and resume.
