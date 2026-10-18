@@ -1,0 +1,12 @@
+{
+  "username": "TestUser",
+  "password": "pässwörd",
+  "legacyHash": "pbkdf2:5000:AQIDBAUGBwg=:NBK5Qm8m6hCQLAE3SKxnPSjDsXJerbD7",
+  "encryptPass": "yBPVH5iVXXBYqi9wse46dqStZ/AfSMZn8RsGU0EGINoW2ocW/ZGWY6BMiT0KYZ4WueC/Hd19bkoPBVwF24enmw==",
+  "encryptPassLowercaseUsername": "gGsYeFFasU1K3AERrtvxU1y0Lyt09utlksy67MhXwLkKBPBDbKAergqr7aDG5rXGzKHZvoO23+wm5F+QeAD1GA==",
+  "legacyKeyParams": "pbkdf2:5000:AAECAwQFBgcICQoLDA0ODw==:32",
+  "legacyKeySalt": "AAECAwQFBgcICQoLDA0ODw==",
+  "legacyKey": "oER5yEo5MntnEm8cjzuz6jwX9XQdAtHDTcCPCVHtZ3U=",
+  "plaintext": "Hallo Welt äöü \uD83D\uDE00\nZweite Zeile.",
+  "ciphertext": "UDL/5Q2L8vSePlBsoGHXZ1n2dENL5xC6sDKITa/FNNfjDqae8EvsEim/H6fKuN+P"
+}
