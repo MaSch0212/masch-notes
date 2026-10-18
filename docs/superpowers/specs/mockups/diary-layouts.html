@@ -1,0 +1,139 @@
+<h2>Diary view — three layouts + real icons (Lucide)</h2>
+<p class="subtitle">Wide: calendar beside entry · Medium (tablet / small laptop / split window): calendar collapses into a strip above a full-width, readable entry · Phone: same idea, bottom tabs.</p>
+
+<script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+  .m { --bg:#f7f8fa; --panel:#ffffff; --rail:#eef0f4; --text:#1f2430; --muted:#6b7280; --line:#e6e8ee; --accent:#0f9d76; --accent-fg:#fff; --sel:#1f2430;
+       background:var(--bg); color:var(--text); font-family:system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    .m { --bg:#0f1115; --panel:#171a20; --rail:#13161b; --text:#e7e9ee; --muted:#8b93a1; --line:#262b34; --accent:#2fc59a; --accent-fg:#06281e; --sel:#e7e9ee; }
+  }
+  svg.lucide { width:14px; height:14px; stroke-width:2; vertical-align:-2px; }
+  .big svg.lucide { width:18px; height:18px; }
+  .wrap { padding:14px; border-radius:12px; display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; margin-bottom:6px; }
+  .frame { border-radius:12px; overflow:hidden; display:flex; box-shadow:0 6px 24px rgba(0,0,0,.25); font-size:11px; }
+  .rail { width:150px; background:var(--rail); padding:12px 10px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:3px; }
+  .rail.slim { width:44px; align-items:center; padding:12px 6px; }
+  .rail .h { font-weight:700; font-size:13px; margin-bottom:10px; }
+  .rail .sec { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.06em; margin:10px 0 3px; }
+  .rail .i { padding:5px 7px; border-radius:7px; display:flex; gap:6px; align-items:center; }
+  .rail .on { background:var(--panel); box-shadow:0 1px 2px rgba(0,0,0,.08); font-weight:600; }
+  .rail .add { color:var(--accent); }
+  .card { background:var(--panel); border-radius:10px; padding:14px; border:1px solid var(--line); }
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .cal span { aspect-ratio:1; border-radius:5px; display:flex; align-items:flex-end; justify-content:flex-end; padding:2px; font-size:8px; color:rgba(0,0,0,.6); }
+  .cal .wd { aspect-ratio:auto; background:none; color:var(--muted); justify-content:center; }
+  .strip { display:flex; gap:5px; align-items:center; }
+  .strip span.d { flex:1; border-radius:7px; padding:4px 0; text-align:center; font-size:9px; color:rgba(0,0,0,.65); }
+  .strip span.d b { display:block; font-size:11px; }
+  .txt { line-height:1.55; font-size:11px; color:var(--text); }
+  .txt p { margin:0 0 7px; }
+  .btn { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:6px 12px; font-weight:600; background:var(--accent); color:var(--accent-fg); }
+  .ghost { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:4px 9px; border:1px solid var(--line); color:var(--muted); }
+  .dot { width:14px; height:14px; border-radius:50%; display:inline-block; }
+  .r0{background:#e5484d}.r1{background:#f2994a}.r2{background:#f2c94c}.r3{background:#8bd17c}.r4{background:#27ae60}.rn{background:var(--line)}
+  .tabs { display:flex; justify-content:space-around; padding:8px 4px 10px; border-top:1px solid var(--line); background:var(--panel); color:var(--muted); }
+  .tabs div { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:9px; }
+  .tabs .on { color:var(--accent); font-weight:700; }
+  .lbl { font-weight:700; margin:14px 0 6px; }
+  .moods { display:flex; gap:6px; margin:8px 0 12px; }
+</style>
+
+<div class="lbl">A · Wide (≥ ~1100px) — calendar beside the entry</div>
+<div class="wrap m">
+  <div class="frame m" style="width:700px;height:380px">
+    <div class="rail">
+      <div class="h">MaSch Notes</div>
+      <div class="sec">Diaries</div>
+      <div class="i on"><i data-lucide="book-heart"></i> My Diary</div>
+      <div class="i"><i data-lucide="book-heart"></i> Travel 2026</div>
+      <div class="sec">Notebooks</div>
+      <div class="i"><i data-lucide="notebook-text"></i> Recipes</div>
+      <div class="i"><i data-lucide="notebook-text"></i> Work notes</div>
+      <div class="i add"><i data-lucide="plus"></i> New notebook</div>
+      <div style="flex:1"></div>
+      <div class="i"><i data-lucide="settings"></i> Settings</div>
+    </div>
+    <div style="flex:1;padding:14px;display:flex;gap:14px;min-width:0">
+      <div style="width:190px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><i data-lucide="chevron-left"></i><b style="font-size:13px">October 2026</b><i data-lucide="chevron-right"></i></div>
+        <div class="cal" style="margin-top:10px">
+          <span class="wd">M</span><span class="wd">T</span><span class="wd">W</span><span class="wd">T</span><span class="wd">F</span><span class="wd">S</span><span class="wd">S</span>
+          <span class="rn"></span><span class="rn"></span><span class="r3">1</span><span class="r4">2</span><span class="r2">3</span><span class="r3">4</span><span class="r1">5</span>
+          <span class="r3">6</span><span class="r4">7</span><span class="r2">8</span><span class="r3">9</span><span class="r0">10</span><span class="r2">11</span><span class="r3">12</span>
+          <span class="r4">13</span><span class="r3">14</span><span class="rn">15</span><span class="r2">16</span><span class="r3">17</span><span class="r3" style="outline:2px solid var(--sel)">18</span><span class="rn">19</span>
+          <span class="rn">20</span><span class="rn">21</span><span class="rn">22</span><span class="rn">23</span><span class="rn">24</span><span class="rn">25</span><span class="rn">26</span>
+        </div>
+      </div>
+      <div class="card" style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="color:var(--muted)">Saturday</div><b style="font-size:14px">18 October 2026</b></div>
+          <span class="btn"><i data-lucide="mic"></i> Record</span>
+        </div>
+        <div class="moods"><span class="dot r0"></span><span class="dot r1"></span><span class="dot r2"></span><span class="dot r3" style="outline:2px solid var(--sel);outline-offset:1px"></span><span class="dot r4"></span></div>
+        <div class="txt"><p>Went for a long walk along the river this morning. The fog only lifted around ten, and the whole valley looked like it was painted in grey and gold.</p><p>Afternoon was quiet — finally finished the book I started in September.</p></div>
+        <div style="margin-top:8px;color:var(--muted);display:flex;gap:4px;align-items:center"><i data-lucide="lock"></i> Saved · encrypted</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lbl">B · Medium (~640–1100px, or a short/split window) — slim icon rail, week strip on top, entry gets the full width (text capped at a comfortable ~70 characters per line)</div>
+<div class="wrap m">
+  <div class="frame m" style="width:560px;height:400px">
+    <div class="rail slim">
+      <div class="i on big"><i data-lucide="book-heart"></i></div>
+      <div class="i big"><i data-lucide="notebook-text"></i></div>
+      <div class="i add big"><i data-lucide="plus"></i></div>
+      <div style="flex:1"></div>
+      <div class="i big"><i data-lucide="settings"></i></div>
+    </div>
+    <div style="flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <b style="font-size:13px;display:flex;gap:5px;align-items:center">My Diary <i data-lucide="chevrons-up-down"></i></b>
+        <span class="ghost"><i data-lucide="calendar-days"></i> October 2026</span>
+      </div>
+      <div class="strip">
+        <i data-lucide="chevron-left"></i>
+        <span class="d r4">Mo<b>13</b></span><span class="d r3">Tu<b>14</b></span><span class="d rn">We<b>15</b></span><span class="d r2">Th<b>16</b></span><span class="d r3">Fr<b>17</b></span><span class="d r3" style="outline:2px solid var(--sel)">Sa<b>18</b></span><span class="d rn">Su<b>19</b></span>
+        <i data-lucide="chevron-right"></i>
+      </div>
+      <div class="card" style="flex:1">
+        <div style="max-width:380px;margin:0 auto">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="color:var(--muted)">Saturday</div><b style="font-size:14px">18 October 2026</b></div>
+            <span class="btn"><i data-lucide="mic"></i> Record</span>
+          </div>
+          <div class="moods"><span class="dot r0"></span><span class="dot r1"></span><span class="dot r2"></span><span class="dot r3" style="outline:2px solid var(--sel);outline-offset:1px"></span><span class="dot r4"></span></div>
+          <div class="txt"><p>Went for a long walk along the river this morning. The fog only lifted around ten, and the whole valley looked like it was painted in grey and gold.</p><p>Afternoon was quiet — finally finished the book I started in September.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:260px;color:var(--muted);font-size:12px;line-height:1.5">
+    The <b>"October 2026"</b> button opens the full mood-coloured month as a popover — pick a day and it closes again, so the entry never has to share space with the calendar.
+  </div>
+</div>
+
+<div class="lbl">C · Phone (&lt; ~640px)</div>
+<div class="wrap m">
+  <div class="frame m" style="width:200px;height:400px;flex-direction:column;border:6px solid #222;border-radius:24px">
+    <div style="padding:10px 10px 6px;display:flex;justify-content:space-between;align-items:center"><b style="display:flex;gap:4px;align-items:center">My Diary <i data-lucide="chevrons-up-down"></i></b><i data-lucide="calendar-days"></i></div>
+    <div class="strip" style="padding:0 8px">
+      <span class="d r3">F<b>17</b></span><span class="d r3" style="outline:2px solid var(--sel)">S<b>18</b></span><span class="d rn">S<b>19</b></span><span class="d rn">M<b>20</b></span><span class="d rn">T<b>21</b></span>
+    </div>
+    <div class="card" style="flex:1;margin:8px;padding:10px;overflow:hidden">
+      <b>Sat, 18 Oct</b>
+      <div class="moods" style="gap:4px"><span class="dot r0" style="width:11px;height:11px"></span><span class="dot r1" style="width:11px;height:11px"></span><span class="dot r2" style="width:11px;height:11px"></span><span class="dot r3" style="width:11px;height:11px;outline:2px solid var(--sel)"></span><span class="dot r4" style="width:11px;height:11px"></span></div>
+      <div class="txt" style="font-size:10px"><p>Went for a long walk along the river this morning. The fog only lifted around ten…</p></div>
+    </div>
+    <div style="text-align:right;padding:0 12px 8px"><span class="btn big" style="width:42px;height:42px;justify-content:center;padding:0"><i data-lucide="mic"></i></span></div>
+    <div class="tabs big">
+      <div class="on"><i data-lucide="book-heart"></i>Diary</div>
+      <div><i data-lucide="notebook-text"></i>Notes</div>
+      <div><i data-lucide="settings"></i>Settings</div>
+    </div>
+  </div>
+</div>
+
+<script>lucide.createIcons();</script>

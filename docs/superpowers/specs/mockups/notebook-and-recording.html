@@ -1,0 +1,153 @@
+<h2>Calendar-first, with dynamic notebooks</h2>
+<p class="subtitle">Follows the system light/dark setting (toggle your OS theme to see the other one). Four screens below — tell me what's off.</p>
+
+<style>
+  .m { --bg:#f7f8fa; --panel:#ffffff; --rail:#eef0f4; --text:#1f2430; --muted:#6b7280; --line:#e6e8ee; --accent:#0f9d76; --accent-fg:#fff; --sel:#1f2430;
+       background:var(--bg); color:var(--text); font-family:system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) {
+    .m { --bg:#0f1115; --panel:#171a20; --rail:#13161b; --text:#e7e9ee; --muted:#8b93a1; --line:#262b34; --accent:#2fc59a; --accent-fg:#06281e; --sel:#e7e9ee; }
+  }
+  .wrap { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+  .desk { width:620px; height:360px; border-radius:12px; overflow:hidden; display:flex; box-shadow:0 6px 24px rgba(0,0,0,.25); font-size:11px; }
+  .phone { width:190px; height:380px; border-radius:24px; overflow:hidden; display:flex; flex-direction:column; border:6px solid #222; box-shadow:0 6px 24px rgba(0,0,0,.25); font-size:10px; }
+  .rail { width:150px; background:var(--rail); padding:12px 10px; border-right:1px solid var(--line); display:flex; flex-direction:column; gap:3px; }
+  .rail .h { font-weight:700; font-size:13px; margin-bottom:10px; }
+  .rail .sec { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.06em; margin:10px 0 3px; }
+  .rail .i { padding:5px 7px; border-radius:7px; }
+  .rail .on { background:var(--panel); box-shadow:0 1px 2px rgba(0,0,0,.08); font-weight:600; }
+  .rail .add { color:var(--accent); }
+  .main { flex:1; padding:14px; display:flex; gap:14px; min-width:0; }
+  .card { background:var(--panel); border-radius:10px; padding:12px; border:1px solid var(--line); }
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .cal span { aspect-ratio:1; border-radius:5px; display:flex; align-items:flex-end; justify-content:flex-end; padding:2px; font-size:8px; color:rgba(0,0,0,.55); }
+  .cal .wd { aspect-ratio:auto; background:none; color:var(--muted); justify-content:center; }
+  .cal .e::after { content:""; width:4px; height:4px; border-radius:50%; background:rgba(0,0,0,.55); }
+  .line { height:6px; border-radius:3px; background:var(--line); margin:7px 0; }
+  .btn { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:6px 12px; font-weight:600; background:var(--accent); color:var(--accent-fg); }
+  .ghost { display:inline-flex; border-radius:999px; padding:5px 10px; border:1px solid var(--line); color:var(--muted); }
+  .dot { width:14px; height:14px; border-radius:50%; display:inline-block; }
+  .r0{background:#e5484d}.r1{background:#f2994a}.r2{background:#f2c94c}.r3{background:#8bd17c}.r4{background:#27ae60}.rn{background:var(--line)}
+  .tabs { display:flex; justify-content:space-around; padding:8px 4px 10px; border-top:1px solid var(--line); background:var(--panel); color:var(--muted); }
+  .tabs .on { color:var(--accent); font-weight:700; }
+  .cat { color:var(--muted); font-size:9px; text-transform:uppercase; margin:8px 0 3px; }
+  .row { padding:6px 8px; border-radius:7px; }
+  .row.on { background:var(--rail); font-weight:600; }
+  .overlay { position:relative; }
+  .pop { position:absolute; right:16px; top:52px; width:230px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+  .step { display:flex; align-items:center; gap:8px; margin:7px 0; }
+  .ok { width:16px; height:16px; border-radius:50%; background:var(--accent); color:var(--accent-fg); display:flex; align-items:center; justify-content:center; font-size:9px; }
+  .spin { width:12px; height:12px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--accent); margin:0 2px; }
+  .lbl { font-weight:700; margin:14px 0 6px; }
+</style>
+
+<div class="lbl">1 · Diary notebook (desktop) — calendar is the navigation, day editor on the right</div>
+<div class="wrap m" style="padding:14px;border-radius:12px">
+  <div class="desk m">
+    <div class="rail">
+      <div class="h">MaSch Notes</div>
+      <div class="sec">Diaries</div>
+      <div class="i on">📅 My Diary</div>
+      <div class="i">📅 Travel 2026</div>
+      <div class="sec">Notebooks</div>
+      <div class="i">🗒 Recipes</div>
+      <div class="i">🗒 Work notes</div>
+      <div class="i add">＋ New notebook</div>
+      <div style="flex:1"></div>
+      <div class="i">⚙ Settings</div>
+    </div>
+    <div class="main">
+      <div style="width:200px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:13px">‹ October 2026 ›</b></div>
+        <div class="cal" style="margin-top:10px">
+          <span class="wd">M</span><span class="wd">T</span><span class="wd">W</span><span class="wd">T</span><span class="wd">F</span><span class="wd">S</span><span class="wd">S</span>
+          <span class="rn"></span><span class="rn"></span><span class="r3 e">1</span><span class="r4 e">2</span><span class="r2">3</span><span class="r3 e">4</span><span class="r1 e">5</span>
+          <span class="r3 e">6</span><span class="r4">7</span><span class="r2 e">8</span><span class="r3 e">9</span><span class="r0 e">10</span><span class="r2 e">11</span><span class="r3">12</span>
+          <span class="r4 e">13</span><span class="r3 e">14</span><span class="rn">15</span><span class="r2 e">16</span><span class="r3 e">17</span><span class="r3 e" style="outline:2px solid var(--sel)">18</span><span class="rn">19</span>
+          <span class="rn">20</span><span class="rn">21</span><span class="rn">22</span><span class="rn">23</span><span class="rn">24</span><span class="rn">25</span><span class="rn">26</span>
+        </div>
+        <div style="margin-top:10px;color:var(--muted)">Colour = mood · dot = has entry</div>
+      </div>
+      <div class="card" style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="color:var(--muted)">Saturday</div><b style="font-size:14px">18 October 2026</b></div>
+          <span class="btn">🎙 Record</span>
+        </div>
+        <div style="margin:10px 0;display:flex;gap:6px"><span class="dot r0"></span><span class="dot r1"></span><span class="dot r2"></span><span class="dot r3" style="outline:2px solid var(--sel);outline-offset:1px"></span><span class="dot r4"></span></div>
+        <div class="line" style="width:96%"></div><div class="line" style="width:88%"></div><div class="line" style="width:92%"></div><div class="line" style="width:70%"></div><div class="line" style="width:40%"></div>
+        <div style="margin-top:18px;color:var(--muted)">Saved · encrypted</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone m">
+    <div style="padding:10px 10px 4px;display:flex;justify-content:space-between"><b>My Diary ▾</b><span>‹ Oct ›</span></div>
+    <div style="padding:0 10px">
+      <div class="cal">
+        <span class="r3 e">13</span><span class="r4 e">14</span><span class="rn">15</span><span class="r2 e">16</span><span class="r3 e">17</span><span class="r3 e" style="outline:2px solid var(--sel)">18</span><span class="rn">19</span>
+      </div>
+      <div style="color:var(--muted);text-align:center;margin:3px 0">swipe ↓ for full month</div>
+    </div>
+    <div class="card" style="flex:1;margin:6px 8px;padding:8px">
+      <b>Sat, 18 Oct</b>
+      <div style="margin:6px 0;display:flex;gap:4px"><span class="dot r0" style="width:11px;height:11px"></span><span class="dot r1" style="width:11px;height:11px"></span><span class="dot r2" style="width:11px;height:11px"></span><span class="dot r3" style="width:11px;height:11px;outline:2px solid var(--sel)"></span><span class="dot r4" style="width:11px;height:11px"></span></div>
+      <div class="line" style="width:90%"></div><div class="line" style="width:75%"></div><div class="line" style="width:85%"></div>
+    </div>
+    <div style="text-align:right;padding:0 12px 8px"><span class="btn" style="width:42px;height:42px;justify-content:center;padding:0;font-size:16px">🎙</span></div>
+    <div class="tabs"><span class="on">📅 Diary</span><span>🗒 Notes</span><span>⚙</span></div>
+  </div>
+</div>
+
+<div class="lbl">2 · Regular notebook (desktop) — entries grouped by category, editor on the right</div>
+<div class="wrap m" style="padding:14px;border-radius:12px">
+  <div class="desk m">
+    <div class="rail">
+      <div class="h">MaSch Notes</div>
+      <div class="sec">Diaries</div>
+      <div class="i">📅 My Diary</div>
+      <div class="i">📅 Travel 2026</div>
+      <div class="sec">Notebooks</div>
+      <div class="i on">🗒 Recipes</div>
+      <div class="i">🗒 Work notes</div>
+      <div class="i add">＋ New notebook</div>
+      <div style="flex:1"></div>
+      <div class="i">⚙ Settings</div>
+    </div>
+    <div class="main">
+      <div style="width:170px">
+        <div style="display:flex;justify-content:space-between"><b style="font-size:13px">Recipes</b><span class="ghost">＋</span></div>
+        <div class="ghost" style="margin-top:8px;width:150px">🔍 Search titles…</div>
+        <div class="cat">Pasta</div>
+        <div class="row on">Carbonara</div><div class="row">Lasagne</div>
+        <div class="cat">Baking</div>
+        <div class="row">Sourdough</div><div class="row">Apple pie</div>
+        <div class="cat">Uncategorised</div>
+        <div class="row">Grandma's soup</div>
+      </div>
+      <div class="card" style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">Carbonara</b><span class="btn">🎙 Record</span></div>
+        <div class="ghost" style="margin-top:8px">🏷 Pasta</div>
+        <div class="line" style="width:96%;margin-top:12px"></div><div class="line" style="width:88%"></div><div class="line" style="width:92%"></div><div class="line" style="width:50%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lbl">3 · Recording flow — popover anchored to the Record button</div>
+<div class="wrap m" style="padding:14px;border-radius:12px">
+  <div class="desk m overlay" style="width:420px;height:230px">
+    <div class="main">
+      <div class="card" style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">18 October 2026</b><span class="btn">⏹ 02:41</span></div>
+        <div class="line" style="width:96%;margin-top:12px"></div><div class="line" style="width:80%"></div>
+      </div>
+    </div>
+    <div class="pop">
+      <b>Creating entry from recording</b>
+      <div class="step"><span class="ok">✓</span> Recording (2:41)</div>
+      <div class="step"><span class="ok">✓</span> Transcribing</div>
+      <div class="step"><span class="spin"></span> Writing entry…</div>
+      <div style="color:var(--muted);margin-top:6px">Text will be appended to the end of this entry.</div>
+      <div style="text-align:right;margin-top:8px"><span class="ghost">Cancel</span></div>
+    </div>
+  </div>
+</div>
