@@ -128,7 +128,7 @@ Build the new structure in place; when complete, delete `src/`, `MaSchNotes.sln`
 | `ALLOW_REGISTRATION`  | `true`                                   | registration was open in the old app                                      |
 | `AI_WHISPER_URL`      | —                                        | whisper.cpp server base URL (e.g. `https://whisper.example.com`)          |
 | `AI_WHISPER_LANGUAGE` | `auto`                                   | passed to whisper                                                         |
-| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                          |
+| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                       |
 | `AI_LLM_MODEL`        | —                                        | e.g. `gemma4:12b`                                                         |
 | `AI_LLM_THINK`        | `false`                                  | Ollama `think` flag                                                       |
 | `AI_LLM_PROMPT_FILE`  | —                                        | optional override of the built-in system prompt                           |

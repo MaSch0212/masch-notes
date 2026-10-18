@@ -22,7 +22,7 @@ MaSch Notes is a self-hosted personal notebook and diary. It runs as a single Go
 | `client/`              | SolidJS + Vite web client                                                      |
 | `client/src/api/`      | Generated TypeScript models and fetch clients (do not edit)                    |
 | `Dockerfile`           | Multi-stage build: client, then static server binary, then small runtime image |
-| `scripts/docker.ps1`   | Docker build and push helper                                                   |
+| `scripts/`             | Docker build and push helpers (Docker Hub image `masch0212/masch-notes`)       |
 | `docs/goast-notes.md`  | Issues found in the goast generators and how this repo works around them       |
 
 Generated code is committed, so the Go server builds without Node. Run `pnpm generate` after changing `api/openapi.yaml`.
@@ -58,8 +58,8 @@ pnpm dev                                   # Vite on http://localhost:5173, prox
 | `go:test`        | `go -C server test ./...`                                     |
 | `go:lint`        | `go -C server tool golangci-lint run`                         |
 | `go:fmt`         | `go -C server tool golangci-lint fmt`                         |
-| `docker:build`   | `pwsh -File scripts/docker.ps1`                               |
-| `docker:push`    | `pwsh -File scripts/docker.ps1 -Push`                         |
+| `docker:build`   | `node scripts/docker-build.js`                                |
+| `docker:push`    | `node scripts/docker-push.js`                                 |
 
 ## Configuration
 
@@ -74,7 +74,7 @@ Set these as environment variables.
 | `ALLOW_REGISTRATION`  | `true`                                   | registration was open in the old app                                      |
 | `AI_WHISPER_URL`      | —                                        | whisper.cpp server base URL (e.g. `https://whisper.example.com`)          |
 | `AI_WHISPER_LANGUAGE` | `auto`                                   | passed to whisper                                                         |
-| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                          |
+| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                       |
 | `AI_LLM_MODEL`        | —                                        | e.g. `gemma4:12b`                                                         |
 | `AI_LLM_THINK`        | `false`                                  | Ollama `think` flag                                                       |
 | `AI_LLM_PROMPT_FILE`  | —                                        | optional override of the built-in system prompt                           |
@@ -111,8 +111,8 @@ New releases are only used after they have been public for two days.
 ## Docker
 
 ```sh
-pnpm docker:build   # single-platform image, loaded into the local Docker daemon
-pnpm docker:push    # linux/amd64 + linux/arm64, pushed to the registry
+pnpm docker:build   # builds masch0212/masch-notes:latest and :<yyyyMMdd-HHmmss>
+pnpm docker:push    # pushes the newest timestamp tag and latest to Docker Hub
 ```
 
-The registry comes from `-Registry` or the `DOCKER_REGISTRY` environment variable (required for pushing; without it the image is tagged `masch-notes:latest` locally). The image listens on port 80, stores data in `/data` (`VOLUME /data`) and runs as root.
+Pushing requires `docker login` with access to the `masch0212` Docker Hub account. The image listens on port 80, stores data in `/data` (`VOLUME /data`) and runs as root.

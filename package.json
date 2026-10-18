@@ -1,6 +1,7 @@
 {
   "name": "masch-notes",
   "private": true,
+  "type": "module",
   "scripts": {
     "generate": "pnpm --filter codegen start",
     "generate:check": "pnpm generate && git diff --exit-code -- server/internal/api client/src/api",
@@ -14,8 +15,8 @@
     "go:test": "go -C server test ./...",
     "go:lint": "go -C server tool golangci-lint run",
     "go:fmt": "go -C server tool golangci-lint fmt",
-    "docker:build": "pwsh -File scripts/docker.ps1",
-    "docker:push": "pwsh -File scripts/docker.ps1 -Push"
+    "docker:build": "node scripts/docker-build.js",
+    "docker:push": "node scripts/docker-push.js"
   },
   "devDependencies": {
     "oxfmt": "0.73.0"
