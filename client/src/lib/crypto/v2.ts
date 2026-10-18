@@ -67,8 +67,12 @@ export async function wrapDataKey(wrapKey: CryptoKey, dataKey: CryptoKey): Promi
   return toBase64(concat(iv, new Uint8Array(wrapped)));
 }
 
-/** Unwraps to a non-extractable key; throws when the wrap key (password) is wrong. */
-export async function unwrapDataKey(wrapKey: CryptoKey, wrappedB64: string): Promise<CryptoKey> {
+/** Unwraps to a non-extractable key (unless `extractable`, only for re-wrapping); throws when the wrap key (password) is wrong. */
+export async function unwrapDataKey(
+  wrapKey: CryptoKey,
+  wrappedB64: string,
+  extractable = false,
+): Promise<CryptoKey> {
   const data = fromBase64(wrappedB64);
   return crypto.subtle.unwrapKey(
     'raw',
@@ -76,7 +80,7 @@ export async function unwrapDataKey(wrapKey: CryptoKey, wrappedB64: string): Pro
     wrapKey,
     { name: 'AES-GCM', iv: data.subarray(0, IV_LENGTH) as BufferSource },
     { name: 'AES-GCM', length: 256 },
-    false,
+    extractable,
     ['encrypt', 'decrypt'],
   );
 }
