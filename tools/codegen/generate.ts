@@ -9,7 +9,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const spec = path.join(root, 'api/openapi.yaml');
 
 const goModulePath = 'github.com/MaSch0212/masch-notes/server/internal/api';
-const goOptions = { modulePath: goModulePath, packagePath: '', packageName: 'api', newLine: '\n' } as const;
+const goOptions = {
+  modulePath: goModulePath,
+  packagePath: '',
+  packageName: 'api',
+  newLine: '\n',
+} as const;
 
 await new OpenApiGenerator({ outputDir: path.join(root, 'server/internal/api') })
   .useType(GoModelsGenerator, goOptions)
@@ -21,4 +26,7 @@ await new OpenApiGenerator({ outputDir: path.join(root, 'client/src/api'), newLi
   .useType(TypeScriptFetchClientsGenerator)
   .parseAndGenerate(spec);
 
-execFileSync('gofmt', ['-l', '-w', 'internal/api'], { cwd: path.join(root, 'server'), stdio: 'inherit' });
+execFileSync('gofmt', ['-l', '-w', 'internal/api'], {
+  cwd: path.join(root, 'server'),
+  stdio: 'inherit',
+});

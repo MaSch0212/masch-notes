@@ -1,20 +1,11 @@
 {
   "$schema": "./client/node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "typescript",
-    "unicorn",
-    "import",
-    "jsx-a11y",
-    "vitest"
-  ],
+  "plugins": ["typescript", "unicorn", "import", "jsx-a11y", "vitest"],
   "categories": {
     "correctness": "error",
     "suspicious": "warn"
   },
-  "ignorePatterns": [
-    "client/src/api/**",
-    "**/dist/**"
-  ],
+  "ignorePatterns": ["client/src/api/**", "**/dist/**"],
   "rules": {
     "import/no-unassigned-import": "off"
   }

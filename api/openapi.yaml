@@ -654,8 +654,7 @@ components:
 
     RegisterRequest:
       type: object
-      required:
-        [username, authKey, kdfSalt, kdfIterations, wrappedKey, givenName, surname, email]
+      required: [username, authKey, kdfSalt, kdfIterations, wrappedKey, givenName, surname, email]
       properties:
         username: { type: string }
         authKey: { type: string, format: byte }
