@@ -219,6 +219,8 @@ export const en = {
     micUnavailable: 'No microphone is available.',
     done: 'Entry added',
     appendNote: 'The text will be appended to the end of this entry.',
+    liveUnavailable:
+      'Voice entries are unavailable: the live connection to the server (WebSocket) could not be established. If you use a reverse proxy, enable WebSocket support there.',
   },
   errors: {
     unauthorized: 'Your session has expired. Please log in again.',

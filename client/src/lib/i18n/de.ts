@@ -225,6 +225,8 @@ export const de: Dict = {
     micUnavailable: 'Es ist kein Mikrofon verfügbar.',
     done: 'Eintrag hinzugefügt',
     appendNote: 'Der Text wird am Ende dieses Eintrags angehängt.',
+    liveUnavailable:
+      'Spracheinträge sind nicht verfügbar: Die Live-Verbindung zum Server (WebSocket) konnte nicht aufgebaut werden. Falls du einen Reverse Proxy nutzt, aktiviere dort die WebSocket-Unterstützung.',
   },
   errors: {
     unauthorized: 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.',

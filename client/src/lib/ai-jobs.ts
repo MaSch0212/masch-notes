@@ -221,6 +221,36 @@ export async function applyAiResult(result: AiResult, target: AiResultTarget): P
   }
 }
 
+export const WS_CHECK_TIMEOUT = 8000;
+
+/** Resolves `true` once the socket is connected and authenticated, `false` after the timeout. */
+export function checkWs(ws: WsClient, timeoutMs = WS_CHECK_TIMEOUT): Promise<boolean> {
+  return new Promise((resolve) => {
+    let unsubscribe: (() => void) | undefined;
+    const finish = (ok: boolean) => {
+      clearTimeout(timer);
+      unsubscribe?.();
+      unsubscribe = undefined;
+      resolve(ok);
+    };
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    unsubscribe = ws.subscribe((m) => {
+      if (m.type === 'authOk') finish(true);
+    });
+  });
+}
+
+let liveCheck: Promise<boolean> | undefined;
+
+/**
+ * Checks once per tab whether the WebSocket works. Recording needs it for the job progress, and a
+ * reverse proxy without WebSocket support would otherwise leave the progress stuck forever.
+ */
+export function checkLiveUpdates(ws: WsClient): Promise<boolean> {
+  liveCheck ??= checkWs(ws);
+  return liveCheck;
+}
+
 let shared: { ws: WsClient; getToken: () => string | null } | undefined;
 
 /** The tab-wide WebSocket client (connects only while a job is being followed). */

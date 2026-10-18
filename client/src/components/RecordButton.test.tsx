@@ -1,4 +1,4 @@
-import { render, screen } from '@solidjs/testing-library';
+import { render, screen, waitFor } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../lib/i18n';
@@ -6,6 +6,7 @@ import { SessionContext } from '../lib/session-context';
 import type { Session } from '../lib/session';
 
 const recorderStart = vi.fn<() => Promise<void>>();
+const checkLiveUpdates = vi.fn<() => Promise<boolean>>();
 
 vi.mock('../lib/audio/recorder', async () => {
   const { createSignal } = await import('solid-js');
@@ -20,6 +21,7 @@ vi.mock('../lib/audio/recorder', async () => {
   };
 });
 vi.mock('../lib/ai-jobs', () => ({
+  checkLiveUpdates: () => checkLiveUpdates(),
   resumePendingJob: () => undefined,
   sharedWsClient: () => ({}),
   startAiJob: vi.fn<() => void>(),
@@ -44,6 +46,8 @@ beforeEach(() => {
   localStorage.clear();
   recorderStart.mockReset();
   recorderStart.mockResolvedValue();
+  checkLiveUpdates.mockReset();
+  checkLiveUpdates.mockResolvedValue(true);
 });
 
 describe('RecordButton info dialog', () => {
@@ -88,5 +92,21 @@ describe('RecordButton info dialog', () => {
     expect(screen.queryByRole('button', { name: 'Start recording' })).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('RecordButton live updates', () => {
+  it('disables recording with an explanation when the WebSocket cannot connect', async () => {
+    checkLiveUpdates.mockResolvedValue(false);
+    show();
+    const button = screen.getByRole('button', { name: 'Record' });
+    await waitFor(() => expect(button).toBeDisabled());
+    expect(button.title).toMatch(/WebSocket/);
+  });
+
+  it('keeps recording enabled when the WebSocket connects', async () => {
+    show();
+    await Promise.resolve();
+    expect(screen.getByRole('button', { name: 'Record' })).toBeEnabled();
   });
 });

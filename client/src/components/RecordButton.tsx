@@ -2,6 +2,7 @@ import { Info, Mic, Square } from 'lucide-solid';
 import { createSignal, onCleanup, onMount, Show } from 'solid-js';
 import type { AiResult } from '../api/models/ai-result';
 import {
+  checkLiveUpdates,
   resumePendingJob,
   sharedWsClient,
   startAiJob,
@@ -37,6 +38,9 @@ function rememberInfoAccepted() {
 
 type Phase = 'idle' | 'recording' | 'working';
 
+/** The "no live updates" toast shows once per tab, not once per button. */
+let liveWarningShown = false;
+
 function formatTime(ms: number): string {
   const total = Math.floor(ms / 1000);
   const mm = String(Math.floor(total / 60)).padStart(2, '0');
@@ -61,6 +65,8 @@ export function RecordButton(props: {
   const [job, setJob] = createSignal<AiJobHandle | null>(null);
   const [dialog, setDialog] = createSignal<'confirm' | 'info' | null>(null);
   const [duration, setDuration] = createSignal<string | undefined>();
+  /** `false` when the WebSocket cannot connect; undefined while checking. */
+  const [live, setLive] = createSignal<boolean | undefined>();
   let audio: Blob | undefined;
   let anchor: HTMLButtonElement | undefined;
   let alive = true;
@@ -107,6 +113,14 @@ export function RecordButton(props: {
   onMount(() => {
     const resumed = resumePendingJob(session.api, ws());
     if (resumed) follow(resumed);
+    void checkLiveUpdates(ws()).then((ok) => {
+      if (!alive) return;
+      setLive(ok);
+      if (!ok && !liveWarningShown) {
+        liveWarningShown = true;
+        showToast(t('recording.liveUnavailable'), 'error');
+      }
+    });
   });
 
   const start = async () => {
@@ -167,7 +181,8 @@ export function RecordButton(props: {
         type="button"
         ref={(el) => (anchor = el)}
         onClick={onClick}
-        disabled={phase() === 'working'}
+        disabled={phase() === 'working' || (phase() === 'idle' && live() === false)}
+        title={phase() === 'idle' && live() === false ? t('recording.liveUnavailable') : undefined}
         aria-label={phase() === 'recording' ? t('recording.stop') : t('recording.start')}
         class={`inline-flex items-center justify-center gap-1.5 border text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 ${
           floating()

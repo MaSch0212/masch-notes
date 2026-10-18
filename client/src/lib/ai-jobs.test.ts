@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AiJob } from '../api/models/ai-job';
 import type { WsServerMessage } from '../api/models/ws-server-message';
 import { ApiRequestError, type Api } from './api';
-import { applyAiResult, resumePendingJob, startAiJob } from './ai-jobs';
+import { applyAiResult, checkWs, resumePendingJob, startAiJob } from './ai-jobs';
 import type { WsClient } from './ws';
 
 function setup(initial: AiJob = { jobId: 'j1', status: 'queued' }) {
@@ -133,5 +133,29 @@ describe('applyAiResult', () => {
     expect(setTitle).not.toHaveBeenCalled();
     await applyAiResult({ text: 'a', title: 'T' }, { ...base, hasTitle: () => false });
     expect(setTitle).toHaveBeenCalledWith('T');
+  });
+});
+
+describe('checkWs', () => {
+  it('resolves true on authOk and unsubscribes', async () => {
+    const t = setup();
+    const result = checkWs(t.ws, 1000);
+    expect(t.subs.size).toBe(1);
+    t.subs.forEach((fn) => fn({ type: 'authOk' }));
+    await expect(result).resolves.toBe(true);
+    expect(t.subs.size).toBe(0);
+  });
+
+  it('resolves false when the socket never authenticates', async () => {
+    vi.useFakeTimers();
+    try {
+      const t = setup();
+      const result = checkWs(t.ws, 1000);
+      vi.advanceTimersByTime(1000);
+      await expect(result).resolves.toBe(false);
+      expect(t.subs.size).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
