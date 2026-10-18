@@ -196,6 +196,7 @@ export const en = {
     micDenied: 'Microphone access was denied.',
     micUnavailable: 'No microphone is available.',
     done: 'Entry added',
+    appendNote: 'The text will be appended to the end of this entry.',
   },
   errors: {
     unauthorized: 'Your session has expired. Please log in again.',

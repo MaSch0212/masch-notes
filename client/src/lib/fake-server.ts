@@ -53,6 +53,8 @@ export type FakeServer = {
   /** Called after each upload; tests use it to abort between batches. */
   onUpload?: () => void;
   requests: string[];
+  /** Value of `aiEnabled` reported by `GET /config`. */
+  aiEnabled: boolean;
   fetch: typeof fetch;
   createApi: (getToken: () => string | null, onUnauthorized: () => void) => Api;
 };
@@ -102,6 +104,7 @@ export function createFakeServer(initial: FakeAccount): FakeServer {
     apiKeys: [],
     profile: { givenName: 'T', surname: 'U', email: 't@example.com' },
     requests: [],
+    aiEnabled: false,
     fetch: undefined as never,
     createApi: undefined as never,
   };
@@ -145,7 +148,7 @@ export function createFakeServer(initial: FakeAccount): FakeServer {
 
     switch (`${method} ${path}`) {
       case 'GET /config':
-        return json({ registrationEnabled: true, aiEnabled: false });
+        return json({ registrationEnabled: true, aiEnabled: server.aiEnabled });
       case 'POST /auth/prelogin':
         return json(
           server.account.scheme === 'v2'

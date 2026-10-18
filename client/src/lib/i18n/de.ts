@@ -201,6 +201,7 @@ export const de: Dict = {
     micDenied: 'Der Zugriff auf das Mikrofon wurde verweigert.',
     micUnavailable: 'Es ist kein Mikrofon verfügbar.',
     done: 'Eintrag hinzugefügt',
+    appendNote: 'Der Text wird am Ende dieses Eintrags angehängt.',
   },
   errors: {
     unauthorized: 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.',

@@ -17,6 +17,7 @@ import { MonthCalendar } from '../components/MonthCalendar';
 import { EntryEditor } from '../components/EntryEditor';
 import { MoodPicker } from '../components/MoodPicker';
 import { NotebookPicker } from '../components/NotebookPicker';
+import { RecordButton } from '../components/RecordButton';
 import { SaveStatus } from '../components/SaveStatus';
 import { WeekStrip } from '../components/WeekStrip';
 import { Button, Modal, Popover, showToast, Spinner } from '../components/ui';
@@ -31,6 +32,8 @@ import {
   parseIsoDate,
   toIsoDate,
 } from '../lib/dates';
+import { applyAiResult } from '../lib/ai-jobs';
+import { useAiEnabled } from '../lib/config';
 import { createEntrySaver, decryptEntry, trackSave, whenSaved } from '../lib/entries';
 import { errorKey } from '../lib/errors';
 import { useI18n } from '../lib/i18n';
@@ -145,12 +148,23 @@ export default function DiaryPage() {
     if (date !== selected()) navigate(`/diary/${notebookId()}/${date}`);
   };
 
-  /**
-   * Extension point (Task 21): per-entry actions at the top right of an entry. The Record button
-   * goes here; `controller.append(text)` adds the AI text and saves, `setMood(n)` sets the day's
-   * mood and `ratings().get(selected())` tells whether the day already has one.
-   */
-  const renderHeaderActions = (_controller: PaneController): JSX.Element => null;
+  const aiEnabled = useAiEnabled();
+
+  const renderHeaderActions = (controller: PaneController): JSX.Element => (
+    <Show when={aiEnabled()}>
+      <RecordButton
+        kind="diary"
+        date={selected()}
+        onResult={(result) =>
+          applyAiResult(result, {
+            append: controller.append,
+            hasMood: () => ratings().has(selected()),
+            setMood: (mood) => void setMood(mood),
+          })
+        }
+      />
+    </Show>
+  );
 
   const dayCard = () => (
     <Show when={`${notebookId()}:${selected()}`} keyed>

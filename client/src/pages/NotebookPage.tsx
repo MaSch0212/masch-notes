@@ -13,10 +13,13 @@ import {
 } from 'solid-js';
 import { EntryEditor } from '../components/EntryEditor';
 import { NotebookPicker } from '../components/NotebookPicker';
+import { RecordButton } from '../components/RecordButton';
 import { SaveStatus } from '../components/SaveStatus';
 import { Button, Modal, showToast, Spinner } from '../components/ui';
 import { apiError, ApiRequestError, unwrap } from '../lib/api';
 import { encryptContent } from '../lib/crypto/v2';
+import { applyAiResult } from '../lib/ai-jobs';
+import { useAiEnabled } from '../lib/config';
 import { createEntrySaver, decryptEntry, trackSave, whenSaved } from '../lib/entries';
 import { errorKey } from '../lib/errors';
 import { useI18n } from '../lib/i18n';
@@ -131,12 +134,23 @@ export default function NotebookPage() {
   const showList = () => layout() !== 'phone' || selection() === '';
   const showEditor = () => layout() !== 'phone' || selection() !== '';
 
-  /**
-   * Extension point (Task 21): per-entry actions next to the title. The Record button goes here;
-   * `controller.append(text)` adds the AI text and saves, `controller.setTitle(...)` fills an
-   * empty title.
-   */
-  const renderHeaderActions = (_controller: NotebookEntryController): JSX.Element => null;
+  const aiEnabled = useAiEnabled();
+
+  const renderHeaderActions = (controller: NotebookEntryController): JSX.Element => (
+    <Show when={aiEnabled()}>
+      <RecordButton
+        kind="notebook"
+        title={controller.title()}
+        onResult={(result) =>
+          applyAiResult(result, {
+            append: controller.append,
+            hasTitle: () => controller.title().trim() !== '',
+            setTitle: controller.setTitle,
+          })
+        }
+      />
+    </Show>
+  );
 
   const listPane = (
     <aside class="flex min-h-0 w-full shrink-0 flex-col gap-3 medium:w-64 wide:w-72">
