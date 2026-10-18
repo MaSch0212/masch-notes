@@ -56,6 +56,7 @@ func newTestServer(t *testing.T) *testServer {
 	api.RegisterNotebooksRoutes(mux, &NotebooksService{Store: st}, opts...)
 	api.RegisterDayRatingsRoutes(mux, &DayRatingsService{Store: st}, opts...)
 	api.RegisterAPIKeysRoutes(mux, &APIKeysService{Store: st}, opts...)
+	api.RegisterCryptoRoutes(mux, &CryptoService{Store: st}, opts...)
 	return &testServer{t: t, Mux: mux, Store: st, Tokens: tokens, Cfg: cfg}
 }
 
