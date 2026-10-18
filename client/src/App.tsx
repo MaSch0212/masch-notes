@@ -32,7 +32,10 @@ function Protected(props: RouteSectionProps): JSX.Element {
       }
     >
       <Show when={session.state.token} fallback={<Navigate href="/login" />}>
-        <AppShell>{props.children}</AppShell>
+        {/* Pages mount only after the migration, so they load with the new data key. */}
+        <AppShell>
+          <Show when={!migrationActive()}>{props.children}</Show>
+        </AppShell>
         <Show when={migrationActive()}>
           <MigrationModal />
         </Show>
