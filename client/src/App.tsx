@@ -9,6 +9,7 @@ import HomeRedirect from './pages/HomeRedirect';
 import LoginPage from './pages/LoginPage';
 import { MigrationModal } from './pages/MigrationModal';
 import NotebookPage from './pages/NotebookPage';
+import SettingsPage from './pages/SettingsPage';
 import RegisterPage from './pages/RegisterPage';
 
 export const routerBase = () => new URL(document.baseURI).pathname.replace(/\/$/, '');
@@ -39,10 +40,6 @@ function Protected(props: RouteSectionProps): JSX.Element {
     </Show>
   );
 }
-
-const Stub = (name: string) => () => <p data-page={name}>{name}</p>;
-
-const SettingsPage = Stub('settings');
 
 export default function App() {
   onMount(() => {

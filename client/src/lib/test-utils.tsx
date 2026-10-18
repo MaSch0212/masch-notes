@@ -3,6 +3,7 @@ import { createMemoryHistory, MemoryRouter } from '@solidjs/router';
 import { render } from '@solidjs/testing-library';
 import type { JSX } from 'solid-js';
 import { AppShell } from '../components/layout/AppShell';
+import { ToastHost } from '../components/ui';
 import { clearDataKey } from './crypto/key-store';
 import { encryptContent } from './crypto/v2';
 import { createFakeServer, seedV2Account, type FakeServer } from './fake-server';
@@ -48,6 +49,7 @@ export function renderRoutes(opts: {
         >
           {opts.routes}
         </MemoryRouter>
+        <ToastHost />
       </SessionContext.Provider>
     </I18nProvider>
   ));
