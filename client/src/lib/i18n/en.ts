@@ -45,6 +45,9 @@ export const en = {
     loginLink: 'Log in',
   },
   migration: {
+    passwordNeeded: 'Enter your password to continue the upgrade.',
+    password: 'Password',
+    retry: 'Try again',
     title: 'Upgrading your encryption',
     intro:
       'MaSch Notes now uses a stronger encryption scheme. Your password never leaves your device anymore, and the server can no longer read your notes in any way.',

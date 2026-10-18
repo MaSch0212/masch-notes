@@ -1,33 +1,52 @@
 import { Navigate, Route, Router, type RouteSectionProps } from '@solidjs/router';
-import type { JSX } from 'solid-js';
-import { ToastHost } from './components/ui';
+import { createSignal, onMount, Show, type JSX } from 'solid-js';
+import { Spinner, ToastHost } from './components/ui';
 import { I18nProvider } from './lib/i18n';
+import { session } from './lib/session';
+import LoginPage from './pages/LoginPage';
+import { MigrationModal } from './pages/MigrationModal';
+import RegisterPage from './pages/RegisterPage';
 
 export const routerBase = () => new URL(document.baseURI).pathname.replace(/\/$/, '');
 
-// Replaced by the real session in the login/register task.
-const isAuthenticated = () => {
-  try {
-    return localStorage.getItem('token') !== null;
-  } catch {
-    return false;
-  }
+const [restored, setRestored] = createSignal(false);
+
+const migrationActive = () => {
+  const m = session.state.migration;
+  return session.state.token !== null && m !== null && m.status !== 'done';
 };
 
 function Protected(props: RouteSectionProps): JSX.Element {
-  return isAuthenticated() ? <>{props.children}</> : <Navigate href="/login" />;
+  return (
+    <Show
+      when={restored()}
+      fallback={
+        <div class="flex h-full items-center justify-center">
+          <Spinner class="size-6" />
+        </div>
+      }
+    >
+      <Show when={session.state.token} fallback={<Navigate href="/login" />}>
+        {props.children}
+        <Show when={migrationActive()}>
+          <MigrationModal />
+        </Show>
+      </Show>
+    </Show>
+  );
 }
 
 const Stub = (name: string) => () => <p data-page={name}>{name}</p>;
 
 const HomeRedirect = Stub('home');
-const LoginPage = Stub('login');
-const RegisterPage = Stub('register');
 const DiaryPage = Stub('diary');
 const NotebookPage = Stub('notebook');
 const SettingsPage = Stub('settings');
 
 export default function App() {
+  onMount(() => {
+    void session.restore().finally(() => setRestored(true));
+  });
   return (
     <I18nProvider>
       <Router base={routerBase()}>

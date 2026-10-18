@@ -47,6 +47,9 @@ export const de: Dict = {
     loginLink: 'Anmelden',
   },
   migration: {
+    passwordNeeded: 'Gib dein Passwort ein, um die Umstellung fortzusetzen.',
+    password: 'Passwort',
+    retry: 'Erneut versuchen',
     title: 'Verschlüsselung wird aktualisiert',
     intro:
       'MaSch Notes verwendet jetzt eine stärkere Verschlüsselung. Dein Passwort verlässt dein Gerät nicht mehr, und der Server kann deine Notizen in keiner Weise mehr lesen.',
