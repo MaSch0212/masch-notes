@@ -1,6 +1,11 @@
-.vs
-.vscode/
-bin/
-dist/
-obj/
-node_modules/
+node_modules
+**/node_modules
+client/dist
+data
+.git
+.superpowers
+src
+build
+docs
+*.db
+*.exe
