@@ -1,8 +1,10 @@
 import { Navigate, Route, Router, type RouteSectionProps } from '@solidjs/router';
 import { createSignal, onMount, Show, type JSX } from 'solid-js';
+import { AppShell } from './components/layout/AppShell';
 import { Spinner, ToastHost } from './components/ui';
 import { I18nProvider } from './lib/i18n';
 import { session } from './lib/session';
+import HomeRedirect from './pages/HomeRedirect';
 import LoginPage from './pages/LoginPage';
 import { MigrationModal } from './pages/MigrationModal';
 import RegisterPage from './pages/RegisterPage';
@@ -27,7 +29,7 @@ function Protected(props: RouteSectionProps): JSX.Element {
       }
     >
       <Show when={session.state.token} fallback={<Navigate href="/login" />}>
-        {props.children}
+        <AppShell>{props.children}</AppShell>
         <Show when={migrationActive()}>
           <MigrationModal />
         </Show>
@@ -38,7 +40,6 @@ function Protected(props: RouteSectionProps): JSX.Element {
 
 const Stub = (name: string) => () => <p data-page={name}>{name}</p>;
 
-const HomeRedirect = Stub('home');
 const DiaryPage = Stub('diary');
 const NotebookPage = Stub('notebook');
 const SettingsPage = Stub('settings');

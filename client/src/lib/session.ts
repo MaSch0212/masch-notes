@@ -252,6 +252,12 @@ export function createSession(makeApi: ApiFactory = (t, u) => createApi(t, u)) {
     });
   }
 
+  /** Stores an updated profile (after `updateUser`). */
+  function setUser(user: User): void {
+    write(STORAGE_KEYS.user, JSON.stringify(user));
+    setState({ user });
+  }
+
   async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
     const dataKey = state.dataKey;
     const username = state.user?.username;
@@ -302,6 +308,7 @@ export function createSession(makeApi: ApiFactory = (t, u) => createApi(t, u)) {
     restore,
     logout,
     changePassword,
+    setUser,
     prepareMigration,
     migrationPassword,
     finishMigration,

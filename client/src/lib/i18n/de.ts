@@ -78,6 +78,12 @@ export const de: Dict = {
     settings: 'Einstellungen',
     newNotebook: 'Neues Notizbuch',
     noNotebooks: 'Noch keine Notizbücher',
+    noDiaries: 'Noch keine Tagebücher',
+    switchNotebook: 'Notizbuch wechseln',
+    main: 'Hauptnavigation',
+  },
+  home: {
+    empty: 'Erstelle dein erstes Tagebuch oder Notizbuch, um loszulegen.',
   },
   diary: {
     today: 'Heute',
@@ -99,6 +105,8 @@ export const de: Dict = {
     createDiary: 'Neues Tagebuch',
     unreadable: 'Dieser Eintrag kann nicht entschlüsselt werden.',
     emptyDiary: 'Erstelle ein Tagebuch, um loszulegen.',
+    loadFailed: 'Dieser Tag konnte nicht geladen werden.',
+    notFound: 'Dieses Tagebuch gibt es nicht.',
   },
   moods: {
     0: 'Furchtbar',
@@ -122,6 +130,11 @@ export const de: Dict = {
     deleteEntry: 'Eintrag löschen',
     deleteConfirm: 'Diesen Eintrag endgültig löschen?',
     selectEntry: 'Wähle einen Eintrag aus oder erstelle einen neuen.',
+    titleRequired: 'Gib dem Eintrag einen Titel, damit er gespeichert wird.',
+    entries: 'Einträge',
+    renameAction: '{{ name }} umbenennen',
+    deleteAction: '{{ name }} löschen',
+    notFound: 'Dieses Notizbuch gibt es nicht.',
     create: {
       title: 'Neues Notizbuch',
       name: 'Name',
@@ -130,6 +143,7 @@ export const de: Dict = {
     rename: { title: 'Notizbuch umbenennen' },
     delete: {
       title: 'Notizbuch löschen',
+      typeName: 'Tippe „{{ name }}“ zur Bestätigung',
       confirm:
         'Das Notizbuch „{{ name }}“ mit allen Einträgen löschen? Das kann nicht rückgängig gemacht werden.',
     },
@@ -162,6 +176,7 @@ export const de: Dict = {
       name: 'Name',
       create: 'Schlüssel erstellen',
       createdTitle: 'Dein neuer API-Schlüssel',
+      deleteTitle: 'API-Schlüssel löschen',
       showOnce: 'Kopiere diesen Schlüssel jetzt. Du kannst ihn später nicht mehr anzeigen.',
       empty: 'Noch keine API-Schlüssel.',
       created: 'Erstellt am {{ date }}',

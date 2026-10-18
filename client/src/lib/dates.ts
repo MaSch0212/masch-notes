@@ -36,3 +36,27 @@ export function formatLong(d: Date, locale: string): string {
     year: 'numeric',
   }).format(d);
 }
+
+const intlLocale = (locale: string) => (locale === 'en' ? 'en-GB' : locale);
+
+export function formatWeekday(d: Date, locale: string, style: 'long' | 'short' = 'long'): string {
+  return new Intl.DateTimeFormat(intlLocale(locale), { weekday: style }).format(d);
+}
+
+/** e.g. "18 October 2026". */
+export function formatDayMonthYear(d: Date, locale: string): string {
+  return new Intl.DateTimeFormat(intlLocale(locale), {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(d);
+}
+
+/** e.g. "October 2026". */
+export function formatMonthYear(d: Date, locale: string): string {
+  return new Intl.DateTimeFormat(intlLocale(locale), { month: 'long', year: 'numeric' }).format(d);
+}
+
+export function firstOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}

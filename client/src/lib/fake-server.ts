@@ -1,12 +1,24 @@
 /** In-memory stand-in for the server's auth and migration endpoints, used by tests only. */
 import CryptoJS from 'crypto-js';
 import type { MigrationInfo } from '../api/models/migration-info';
+import type { ApiKey } from '../api/models/api-key';
+import type { Notebook } from '../api/models/notebook';
 import type { PendingEntry } from '../api/models/pending-entry';
 import { createApi, type Api } from './api';
 import { toBase64 } from './base64';
 import { deriveKeys, generateDataKey, KDF_ITERATIONS, randomSalt, wrapDataKey } from './crypto/v2';
 
 export type FakeEntry = PendingEntry & { contentV2?: string; skipped?: boolean };
+
+/** A notebook entry as stored by the fake server (`content` is base64 v2 ciphertext). */
+export type FakeNotebookEntry = {
+  id: number;
+  notebookId: number;
+  name?: string;
+  category?: string;
+  date?: string;
+  content: string;
+};
 
 export type FakeAccount = {
   username: string;
@@ -32,6 +44,12 @@ export type FakeServer = {
   account: FakeAccount;
   entries: FakeEntry[];
   migration: MigrationRow | null;
+  notebooks: Notebook[];
+  notebookEntries: FakeNotebookEntry[];
+  /** date -> rating (user-wide) */
+  ratings: Map<string, number>;
+  apiKeys: ApiKey[];
+  profile: { givenName: string; surname: string; email: string };
   /** Called after each upload; tests use it to abort between batches. */
   onUpload?: () => void;
   requests: string[];
@@ -78,6 +96,11 @@ export function createFakeServer(initial: FakeAccount): FakeServer {
     account: initial,
     entries: [],
     migration: null,
+    notebooks: [],
+    notebookEntries: [],
+    ratings: new Map(),
+    apiKeys: [],
+    profile: { givenName: 'T', surname: 'U', email: 't@example.com' },
     requests: [],
     fetch: undefined as never,
     createApi: undefined as never,
@@ -85,10 +108,9 @@ export function createFakeServer(initial: FakeAccount): FakeServer {
   const user = () => ({
     id: 1,
     username: server.account.username,
-    givenName: 'T',
-    surname: 'U',
-    email: 't@example.com',
+    ...server.profile,
   });
+  let nextId = 100;
   const info = (): MigrationInfo => {
     const migrated = server.entries.filter((e) => e.contentV2 !== undefined).length;
     return {
@@ -117,6 +139,9 @@ export function createFakeServer(initial: FakeAccount): FakeServer {
     server.requests.push(`${method} ${path}`);
     const body = typeof init?.body === 'string' ? JSON.parse(init.body) : undefined;
     const sameName = (n: string) => n.toLowerCase() === server.account.username.toLowerCase();
+
+    const routed = routeData(server, method, path, url, body, () => nextId++);
+    if (routed) return routed;
 
     switch (`${method} ${path}`) {
       case 'GET /config':
@@ -213,4 +238,135 @@ export function createFakeServer(initial: FakeAccount): FakeServer {
   server.createApi = (getToken, onUnauthorized) =>
     createApi(getToken, onUnauthorized, server.fetch);
   return server;
+}
+
+function routeData(
+  server: FakeServer,
+  method: string,
+  path: string,
+  url: URL,
+  body: any,
+  newId: () => number,
+): Response | null {
+  const key = `${method} ${path}`;
+  if (key === 'GET /notebooks') return json(server.notebooks);
+  if (key === 'POST /notebooks') {
+    if (!body.name?.trim()) return err('nameRequired', 400);
+    const nb = { id: newId(), name: body.name, isDiary: body.isDiary };
+    server.notebooks.push(nb);
+    return json(nb, 201);
+  }
+  let m = /^\/notebooks\/(\d+)$/.exec(path);
+  if (m) {
+    const nb = server.notebooks.find((n) => n.id === Number(m![1]));
+    if (!nb) return err('notFound', 404);
+    if (method === 'GET') return json(nb);
+    if (method === 'PUT') {
+      nb.name = body.name;
+      return json(nb);
+    }
+    if (method === 'DELETE') {
+      server.notebooks = server.notebooks.filter((n) => n !== nb);
+      server.notebookEntries = server.notebookEntries.filter((e) => e.notebookId !== nb.id);
+      return empty();
+    }
+  }
+  m = /^\/notebooks\/(\d+)\/categories$/.exec(path);
+  if (m && method === 'GET') {
+    const cats = server.notebookEntries
+      .filter((e) => e.notebookId === Number(m![1]) && e.category)
+      .map((e) => e.category!);
+    return json([...new Set(cats)].toSorted());
+  }
+  m = /^\/notebooks\/(\d+)\/entries$/.exec(path);
+  if (m) {
+    const notebookId = Number(m[1]);
+    const nb = server.notebooks.find((n) => n.id === notebookId);
+    if (!nb) return err('notFound', 404);
+    if (method === 'GET') {
+      const from = url.searchParams.get('from');
+      const to = url.searchParams.get('to');
+      const withContent = url.searchParams.get('includeContent') === 'true';
+      return json(
+        server.notebookEntries
+          .filter((e) => e.notebookId === notebookId)
+          .filter((e) => (from && e.date ? e.date >= from : true))
+          .filter((e) => (to && e.date ? e.date <= to : true))
+          .map(({ content, ...e }) => ({
+            ...e,
+            encVersion: 2,
+            ...(withContent ? { content } : {}),
+          })),
+      );
+    }
+    if (method === 'POST') {
+      if (nb.isDiary) {
+        const existing = server.notebookEntries.find(
+          (e) => e.notebookId === notebookId && e.date === body.date,
+        );
+        if (existing)
+          return json({ code: 'entryExists', message: 'exists', entryId: existing.id }, 409);
+      }
+      const entry = { id: newId(), notebookId, ...body } as FakeNotebookEntry;
+      server.notebookEntries.push(entry);
+      return json({ ...entry, encVersion: 2 }, 201);
+    }
+  }
+  m = /^\/notebooks\/(\d+)\/entries\/(\d+)$/.exec(path);
+  if (m) {
+    const entry = server.notebookEntries.find(
+      (e) => e.notebookId === Number(m![1]) && e.id === Number(m![2]),
+    );
+    if (!entry) return err('notFound', 404);
+    if (method === 'GET') return json({ ...entry, encVersion: 2 });
+    if (method === 'PUT') {
+      Object.assign(entry, {
+        name: body.name,
+        category: body.category,
+        date: body.date,
+        content: body.content,
+      });
+      return json({ ...entry, encVersion: 2 });
+    }
+    if (method === 'DELETE') {
+      server.notebookEntries = server.notebookEntries.filter((e) => e !== entry);
+      return empty();
+    }
+  }
+  if (key === 'GET /day-ratings') {
+    const from = url.searchParams.get('from') ?? '';
+    const to = url.searchParams.get('to') ?? '';
+    return json(
+      [...server.ratings]
+        .filter(([d]) => d >= from && d <= to)
+        .map(([date, rating]) => ({ date, rating })),
+    );
+  }
+  m = /^\/day-ratings\/(\d{4}-\d{2}-\d{2})$/.exec(path);
+  if (m) {
+    if (method === 'PUT') {
+      server.ratings.set(m[1]!, body.rating);
+      return json({ date: m[1], rating: body.rating });
+    }
+    if (method === 'DELETE') {
+      server.ratings.delete(m[1]!);
+      return empty();
+    }
+  }
+  if (key === 'PUT /user') {
+    server.profile = { givenName: body.givenName, surname: body.surname, email: body.email };
+    return json({ id: 1, username: server.account.username, ...server.profile });
+  }
+  if (key === 'GET /api-keys') return json(server.apiKeys);
+  if (key === 'POST /api-keys') {
+    const apiKey = { id: newId(), name: body.name, createdAt: new Date().toISOString() };
+    server.apiKeys.push(apiKey);
+    return json({ key: `mn_secret_${apiKey.id}`, apiKey }, 201);
+  }
+  m = /^\/api-keys\/(\d+)$/.exec(path);
+  if (m && method === 'DELETE') {
+    server.apiKeys = server.apiKeys.filter((k) => k.id !== Number(m![1]));
+    return empty();
+  }
+  return null;
 }

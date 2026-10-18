@@ -75,6 +75,12 @@ export const en = {
     settings: 'Settings',
     newNotebook: 'New notebook',
     noNotebooks: 'No notebooks yet',
+    noDiaries: 'No diaries yet',
+    switchNotebook: 'Switch notebook',
+    main: 'Main navigation',
+  },
+  home: {
+    empty: 'Create your first diary or notebook to get started.',
   },
   diary: {
     today: 'Today',
@@ -96,6 +102,8 @@ export const en = {
     createDiary: 'New diary',
     unreadable: 'This entry cannot be decrypted.',
     emptyDiary: 'Create a diary to get started.',
+    loadFailed: 'This day could not be loaded.',
+    notFound: 'This diary does not exist.',
   },
   moods: {
     0: 'Awful',
@@ -119,6 +127,11 @@ export const en = {
     deleteEntry: 'Delete entry',
     deleteConfirm: 'Delete this entry permanently?',
     selectEntry: 'Select an entry or create a new one.',
+    titleRequired: 'Give the entry a title to save it.',
+    entries: 'Entries',
+    renameAction: 'Rename {{ name }}',
+    deleteAction: 'Delete {{ name }}',
+    notFound: 'This notebook does not exist.',
     create: {
       title: 'New notebook',
       name: 'Name',
@@ -127,6 +140,7 @@ export const en = {
     rename: { title: 'Rename notebook' },
     delete: {
       title: 'Delete notebook',
+      typeName: 'Type “{{ name }}” to confirm',
       confirm: 'Delete the notebook “{{ name }}” with all its entries? This cannot be undone.',
     },
   },
@@ -157,6 +171,7 @@ export const en = {
       name: 'Name',
       create: 'Create key',
       createdTitle: 'Your new API key',
+      deleteTitle: 'Delete API key',
       showOnce: 'Copy this key now. You will not be able to see it again.',
       empty: 'No API keys yet.',
       created: 'Created {{ date }}',
