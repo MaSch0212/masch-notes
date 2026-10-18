@@ -65,21 +65,21 @@ pnpm dev                                   # Vite on http://localhost:5173, prox
 
 Set these as environment variables.
 
-| Var                   | Default                                  | Meaning                                                                    |
-| --------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
-| `PORT`                | `80`                                     | listen port                                                                |
-| `DATA_DIR`            | `/data` in container, `./data` otherwise | DB location (`maschnotes.db`)                                              |
-| `JWT_KEY`             | —                                        | HMAC secret. If unset, generate one and persist it in `DATA_DIR/jwt.key`.  |
-| `BASE_PATH`           | ``                                       | optional path prefix                                                       |
-| `ALLOW_REGISTRATION`  | `true`                                   | registration was open in the old app                                       |
-| `AI_WHISPER_URL`      | —                                        | whisper.cpp server base URL (e.g. `https://whisper.example.com`)           |
-| `AI_WHISPER_LANGUAGE` | `auto`                                   | passed to whisper                                                          |
-| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                           |
-| `AI_LLM_MODEL`        | —                                        | e.g. `gemma4:12b`                                                          |
-| `AI_LLM_THINK`        | `false`                                  | Ollama `think` flag                                                        |
-| `AI_LLM_PROMPT_FILE`  | —                                        | optional override of the built-in system prompt                            |
-| `AI_MAX_AUDIO_MB`     | `50`                                     | upload limit                                                               |
-| `AI_TIMEOUT`          | `10m`                                    | per-step timeout for whisper / LLM calls                                   |
+| Var                   | Default                                  | Meaning                                                                   |
+| --------------------- | ---------------------------------------- | ------------------------------------------------------------------------- |
+| `PORT`                | `80`                                     | listen port                                                               |
+| `DATA_DIR`            | `/data` in container, `./data` otherwise | DB location (`maschnotes.db`)                                             |
+| `JWT_KEY`             | —                                        | HMAC secret. If unset, generate one and persist it in `DATA_DIR/jwt.key`. |
+| `BASE_PATH`           | ``                                       | optional path prefix                                                      |
+| `ALLOW_REGISTRATION`  | `true`                                   | registration was open in the old app                                      |
+| `AI_WHISPER_URL`      | —                                        | whisper.cpp server base URL (e.g. `https://whisper.example.com`)          |
+| `AI_WHISPER_LANGUAGE` | `auto`                                   | passed to whisper                                                         |
+| `AI_LLM_URL`          | —                                        | Ollama base URL (e.g. `https://ollama.example.com`)                          |
+| `AI_LLM_MODEL`        | —                                        | e.g. `gemma4:12b`                                                         |
+| `AI_LLM_THINK`        | `false`                                  | Ollama `think` flag                                                       |
+| `AI_LLM_PROMPT_FILE`  | —                                        | optional override of the built-in system prompt                           |
+| `AI_MAX_AUDIO_MB`     | `50`                                     | upload limit                                                              |
+| `AI_TIMEOUT`          | `10m`                                    | per-step timeout for whisper / LLM calls                                  |
 
 AI is enabled only when `AI_WHISPER_URL`, `AI_LLM_URL` and `AI_LLM_MODEL` are all set.
 Old names stay accepted as aliases: `path-base` / `PathBase` → `BASE_PATH`; `JWT__key` /
