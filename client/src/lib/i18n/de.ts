@@ -193,9 +193,21 @@ export const de: Dict = {
     recorded: 'Aufnahme',
     transcribing: 'Transkribieren',
     composing: 'Eintrag schreiben',
-    privacy:
-      'Deine Aufnahme wird über deinen MaSch-Notes-Server an deine eigenen Transkriptions- und KI-Server gesendet, ausschließlich um diesen Text zu erstellen. Nichts davon – weder Audio noch Transkript oder Ergebnis – wird dort gespeichert. Der fertige Text wird in deinem Browser verschlüsselt, bevor er gespeichert wird, wie jeder andere Eintrag auch.',
+    info: {
+      title: 'Bevor du aufnimmst',
+      open: 'Über Spracheinträge',
+      speak: 'Sprich ganz frei – Füllwörter und Pausen sind kein Problem.',
+      privacy:
+        'Deine Aufnahme wird über deinen MaSch-Notes-Server an deine eigenen Transkriptions- und KI-Server gesendet, ausschließlich um den Text zu schreiben. Nichts davon – weder Audio noch Transkript oder Ergebnis – wird dort gespeichert.',
+      appended:
+        'Der fertige Text wird am Ende dieses Eintrags angehängt und in deinem Browser verschlüsselt, bevor er gespeichert wird, wie jeder andere Eintrag auch.',
+      mood: 'Bei Tagebucheinträgen wird die Stimmung aus dem Gesagten übernommen, wenn der Tag noch keine hat.',
+      title2:
+        'Bei Notizbuch-Einträgen wird ein Titel vorgeschlagen, falls noch keiner vorhanden ist.',
+      close: 'Schließen',
+    },
     cancel: 'Abbrechen',
+    begin: 'Aufnahme starten',
     failedStep: 'Fehlgeschlagen bei: {{ step }}',
     retry: 'Erneut versuchen',
     micDenied: 'Der Zugriff auf das Mikrofon wurde verweigert.',

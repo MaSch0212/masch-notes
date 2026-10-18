@@ -30,14 +30,12 @@ const state = (step: string) =>
   document.querySelector(`[data-step="${step}"]`)?.getAttribute('data-state');
 
 describe('RecordPopover', () => {
-  it('popover shows steps and privacy note', async () => {
+  it('popover shows steps without a privacy note', async () => {
     const { onCancel } = show('composing');
     expect(screen.getByText(/Recording/)).toHaveTextContent('Recording (02:41)');
     expect(state('transcribing')).toBe('done');
     expect(state('composing')).toBe('active');
-    expect(
-      screen.getByText(/Your recording is sent through your MaSch Notes server/),
-    ).toBeVisible();
+    expect(screen.queryByText(/Your recording is sent through your MaSch Notes server/)).toBeNull();
     expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
     await userEvent.setup().click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onCancel).toHaveBeenCalled();

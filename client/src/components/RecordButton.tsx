@@ -1,4 +1,4 @@
-import { Mic, Square } from 'lucide-solid';
+import { Info, Mic, Square } from 'lucide-solid';
 import { createSignal, onCleanup, onMount, Show } from 'solid-js';
 import type { AiResult } from '../api/models/ai-result';
 import {
@@ -13,8 +13,27 @@ import { toWhisperWav } from '../lib/audio/wav';
 import { useI18n } from '../lib/i18n';
 import { layout } from '../lib/layout';
 import { useSession } from '../lib/session-context';
+import { RecordingInfoDialog } from './RecordingInfoDialog';
 import { RecordPopover } from './RecordPopover';
 import { showToast } from './ui';
+
+const INFO_KEY = 'maschnotes.recordingInfoAccepted';
+
+function infoAccepted(): boolean {
+  try {
+    return localStorage.getItem(INFO_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function rememberInfoAccepted() {
+  try {
+    localStorage.setItem(INFO_KEY, '1');
+  } catch {
+    // storage unavailable: the dialog simply shows again next time
+  }
+}
 
 type Phase = 'idle' | 'recording' | 'working';
 
@@ -40,6 +59,7 @@ export function RecordButton(props: {
   const recorder = createRecorder();
   const [phase, setPhase] = createSignal<Phase>('idle');
   const [job, setJob] = createSignal<AiJobHandle | null>(null);
+  const [dialog, setDialog] = createSignal<'confirm' | 'info' | null>(null);
   const [duration, setDuration] = createSignal<string | undefined>();
   let audio: Blob | undefined;
   let anchor: HTMLButtonElement | undefined;
@@ -127,8 +147,16 @@ export function RecordButton(props: {
   };
 
   const onClick = () => {
-    if (phase() === 'idle') void start();
-    else if (phase() === 'recording') void stop();
+    if (phase() === 'idle') {
+      if (infoAccepted()) void start();
+      else setDialog('confirm');
+    } else if (phase() === 'recording') void stop();
+  };
+
+  const confirmStart = () => {
+    rememberInfoAccepted();
+    setDialog(null);
+    void start();
   };
 
   const floating = () => layout() === 'phone';
@@ -166,6 +194,26 @@ export function RecordButton(props: {
           </span>
         </Show>
       </button>
+      <Show when={phase() === 'idle'}>
+        <button
+          type="button"
+          onClick={() => setDialog('info')}
+          aria-label={t('recording.info.open')}
+          class={`inline-flex size-8 items-center justify-center rounded-full text-muted transition hover:bg-rail hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            floating()
+              ? 'fixed right-[4.75rem] bottom-7 z-30 border border-line bg-panel shadow'
+              : ''
+          }`}
+        >
+          <Info class="size-4" aria-hidden="true" />
+        </button>
+      </Show>
+      <RecordingInfoDialog
+        open={dialog() !== null}
+        mode={dialog() ?? 'info'}
+        onClose={() => setDialog(null)}
+        onStart={confirmStart}
+      />
       <RecordPopover
         open={phase() === 'working' && job() !== null}
         anchor={anchor}

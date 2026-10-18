@@ -85,7 +85,6 @@ export function RecordPopover(props: {
           </p>
         </Show>
         <p class="text-xs text-muted">{t('recording.appendNote')}</p>
-        <p class="text-xs text-muted">{t('recording.privacy')}</p>
         <div class="flex justify-end gap-2">
           <Button variant="ghost" class="px-3 py-1" onClick={props.onCancel}>
             {t('recording.cancel')}

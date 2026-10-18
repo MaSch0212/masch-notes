@@ -188,9 +188,20 @@ export const en = {
     recorded: 'Recording',
     transcribing: 'Transcribing',
     composing: 'Writing entry',
-    privacy:
-      'Your recording is sent through your MaSch Notes server to your own transcription and AI servers, only to create this text. Nothing — audio, transcript or result — is stored there. The finished text is encrypted in your browser before it is saved, like every other entry.',
+    info: {
+      title: 'Before you record',
+      open: 'About voice entries',
+      speak: 'Speak freely – filler words and pauses are fine.',
+      privacy:
+        'Your recording is sent through your MaSch Notes server to your own transcription and AI servers, only to write the text. Nothing – audio, transcript or result – is stored there.',
+      appended:
+        'The finished text is appended to the end of this entry and encrypted in your browser before it is saved, like every other entry.',
+      mood: 'For diary entries, the mood is set from what you said if the day has no mood yet.',
+      title2: 'For notebook entries, a title is suggested if the entry has none yet.',
+      close: 'Close',
+    },
     cancel: 'Cancel',
+    begin: 'Start recording',
     failedStep: 'Failed during: {{ step }}',
     retry: 'Try again',
     micDenied: 'Microphone access was denied.',
