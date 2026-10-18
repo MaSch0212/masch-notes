@@ -7,6 +7,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"log/slog"
+	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -68,8 +71,21 @@ func newID() string {
 	return hex.EncodeToString(b)
 }
 
-// Start queues a job and returns its id immediately.
-func (j *Jobs) Start(userID int64, audio []byte, in ComposeInput) string {
+// AudioFileName is the name the recording is sent to whisper under: only the extension of the
+// uploaded name is kept (it tells whisper the format), anything unusual falls back to WAV.
+func AudioFileName(uploaded string) string {
+	ext := strings.ToLower(filepath.Ext(uploaded))
+	if !audioExt.MatchString(ext) {
+		ext = ".wav"
+	}
+	return "audio" + ext
+}
+
+var audioExt = regexp.MustCompile(`^\.[a-z0-9]{1,5}$`)
+
+// Start queues a job and returns its id immediately. filename is the name the audio is sent to
+// whisper under (see AudioFileName).
+func (j *Jobs) Start(userID int64, audio []byte, filename string, in ComposeInput) string {
 	ctx, cancel := context.WithCancel(context.Background())
 	id := newID()
 	jb := &job{userID: userID, cancel: cancel, state: api.AiJob{JobID: id, Status: api.AiJobStatusQueued}}
@@ -77,7 +93,7 @@ func (j *Jobs) Start(userID int64, audio []byte, in ComposeInput) string {
 	j.jobs[id] = jb
 	j.mu.Unlock()
 	j.publish(userID, jb.state)
-	go j.run(ctx, jb, audio, in)
+	go j.run(ctx, jb, audio, filename, in)
 	return id
 }
 
@@ -110,13 +126,13 @@ func (j *Jobs) fail(jb *job, code string) {
 	})
 }
 
-func (j *Jobs) run(ctx context.Context, jb *job, audio []byte, in ComposeInput) {
+func (j *Jobs) run(ctx context.Context, jb *job, audio []byte, filename string, in ComposeInput) {
 	defer jb.cancel()
 	if !j.setStatus(jb, api.AiJobStatusTranscribing) {
 		return
 	}
 	tctx, cancelT := context.WithTimeout(ctx, j.timeout)
-	text, err := j.transcriber.Transcribe(tctx, bytes.NewReader(audio), "audio.wav")
+	text, err := j.transcriber.Transcribe(tctx, bytes.NewReader(audio), filename)
 	cancelT()
 	if err != nil {
 		if ctx.Err() == nil {

@@ -50,7 +50,11 @@ function readPending(): Pending | null {
 
 async function upload(input: AiJobInput, opts: AiJobOptions, signal: AbortSignal): Promise<string> {
   const form = new FormData();
-  form.append('audio', input.audio, 'recording.wav');
+  form.append(
+    'audio',
+    input.audio,
+    input.audio.type === 'audio/mpeg' ? 'recording.mp3' : 'recording.wav',
+  );
   form.append('kind', input.kind);
   if (input.date) form.append('date', input.date);
   if (input.title) form.append('title', input.title);

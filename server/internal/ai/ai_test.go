@@ -183,9 +183,11 @@ type fakeT struct {
 	err  error
 	wait bool
 	ctx  chan context.Context
+	name string
 }
 
-func (f *fakeT) Transcribe(ctx context.Context, _ io.Reader, _ string) (string, error) {
+func (f *fakeT) Transcribe(ctx context.Context, _ io.Reader, name string) (string, error) {
+	f.name = name
 	if f.ctx != nil {
 		f.ctx <- ctx
 	}
@@ -249,9 +251,13 @@ func statuses(msgs []api.AiJob) []api.AiJobStatus {
 func TestJobHappyPathPublishesSteps(t *testing.T) {
 	rec := newRecorder()
 	c := &fakeC{res: ComposeResult{Text: "Heute war ein guter Tag.", Mood: ptr(3), Title: "Guter Tag"}}
-	j := NewJobs(&fakeT{text: "[Musik] ähm heute war gut"}, c, rec.publish, time.Second, nil)
-	id := j.Start(7, []byte("a"), ComposeInput{Kind: "notebook"})
+	tr := &fakeT{text: "[Musik] ähm heute war gut"}
+	j := NewJobs(tr, c, rec.publish, time.Second, nil)
+	id := j.Start(7, []byte("a"), "audio.mp3", ComposeInput{Kind: "notebook"})
 	msgs := rec.wait(t)
+	if tr.name != "audio.mp3" {
+		t.Errorf("whisper got file name %q", tr.name)
+	}
 
 	want := []api.AiJobStatus{api.AiJobStatusQueued, api.AiJobStatusTranscribing, api.AiJobStatusComposing, api.AiJobStatusDone}
 	got := statuses(msgs)
@@ -280,7 +286,7 @@ func TestJobDiaryHasNoTitleAndMoodRangeEnforced(t *testing.T) {
 	rec := newRecorder()
 	c := &fakeC{res: ComposeResult{Text: "x", Mood: ptr(9), Title: "ignored"}}
 	j := NewJobs(&fakeT{text: "hallo"}, c, rec.publish, time.Second, nil)
-	j.Start(1, nil, ComposeInput{Kind: "diary"})
+	j.Start(1, nil, "audio.wav", ComposeInput{Kind: "diary"})
 	msgs := rec.wait(t)
 	r := msgs[len(msgs)-1].Result
 	if r == nil || r.Mood != nil || r.Title != nil {
@@ -292,7 +298,7 @@ func TestJobEmptyTranscript(t *testing.T) {
 	rec := newRecorder()
 	c := &fakeC{}
 	j := NewJobs(&fakeT{text: " [BLANK_AUDIO] "}, c, rec.publish, time.Second, nil)
-	j.Start(1, []byte("a"), ComposeInput{Kind: "diary"})
+	j.Start(1, []byte("a"), "audio.wav", ComposeInput{Kind: "diary"})
 	msgs := rec.wait(t)
 	last := msgs[len(msgs)-1]
 	if last.Status != api.AiJobStatusFailed || last.Error == nil || *last.Error != "emptyTranscript" || last.Result != nil {
@@ -306,14 +312,14 @@ func TestJobEmptyTranscript(t *testing.T) {
 func TestJobUpstreamErrors(t *testing.T) {
 	rec := newRecorder()
 	j := NewJobs(&fakeT{err: io.ErrUnexpectedEOF}, &fakeC{}, rec.publish, time.Second, nil)
-	j.Start(1, nil, ComposeInput{})
+	j.Start(1, nil, "audio.wav", ComposeInput{})
 	if last := lastOf(rec.wait(t)); last.Error == nil || *last.Error != "transcriptionFailed" {
 		t.Fatalf("last = %+v", last)
 	}
 
 	rec = newRecorder()
 	j = NewJobs(&fakeT{text: "hallo"}, &fakeC{err: ErrCompositionFailed}, rec.publish, time.Second, nil)
-	j.Start(1, nil, ComposeInput{})
+	j.Start(1, nil, "audio.wav", ComposeInput{})
 	if last := lastOf(rec.wait(t)); last.Error == nil || *last.Error != "compositionFailed" {
 		t.Fatalf("last = %+v", last)
 	}
@@ -325,7 +331,7 @@ func TestJobCancel(t *testing.T) {
 	rec := newRecorder()
 	ft := &fakeT{wait: true, ctx: make(chan context.Context, 1)}
 	j := NewJobs(ft, &fakeC{}, rec.publish, time.Minute, nil)
-	id := j.Start(1, nil, ComposeInput{})
+	id := j.Start(1, nil, "audio.wav", ComposeInput{})
 	upstream := <-ft.ctx
 	if j.Cancel(2, id) {
 		t.Fatal("other user must not cancel")
@@ -351,7 +357,7 @@ func TestJobCancel(t *testing.T) {
 func TestJobOwnership(t *testing.T) {
 	rec := newRecorder()
 	j := NewJobs(&fakeT{text: "hallo"}, &fakeC{res: ComposeResult{Text: "x"}}, rec.publish, time.Second, nil)
-	id := j.Start(1, nil, ComposeInput{})
+	id := j.Start(1, nil, "audio.wav", ComposeInput{})
 	rec.wait(t)
 	if _, ok := j.Get(2, id); ok {
 		t.Fatal("other user must not see the job")
@@ -370,7 +376,7 @@ func TestJobExpiry(t *testing.T) {
 	clock := func() time.Time { mu.Lock(); defer mu.Unlock(); return now }
 	rec := newRecorder()
 	j := NewJobs(&fakeT{text: "hallo"}, &fakeC{res: ComposeResult{Text: "x"}}, rec.publish, time.Second, clock)
-	id := j.Start(1, nil, ComposeInput{})
+	id := j.Start(1, nil, "audio.wav", ComposeInput{})
 	rec.wait(t)
 
 	mu.Lock()
@@ -386,5 +392,22 @@ func TestJobExpiry(t *testing.T) {
 	j.Sweep()
 	if _, ok := j.Get(1, id); ok {
 		t.Fatal("job should have expired")
+	}
+}
+
+func TestAudioFileName(t *testing.T) {
+	for in, want := range map[string]string{
+		"recording.mp3":    "audio.mp3",
+		"Recording.WAV":    "audio.wav",
+		"voice.m4a":        "audio.m4a",
+		"":                 "audio.wav",
+		"noext":            "audio.wav",
+		"../../etc/passwd": "audio.wav",
+		"x.mp3;rm -rf":     "audio.wav",
+		"a.verylongext":    "audio.wav",
+	} {
+		if got := AudioFileName(in); got != want {
+			t.Errorf("AudioFileName(%q) = %q, want %q", in, got, want)
+		}
 	}
 }

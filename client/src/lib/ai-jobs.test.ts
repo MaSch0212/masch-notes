@@ -54,7 +54,7 @@ describe('ai jobs', () => {
     expect(url).toBe('/api/ai/jobs');
     expect((init.headers as Headers).get('Authorization')).toBe('Bearer tok');
     const form = init.body as FormData;
-    expect((form.get('audio') as File).name).toBe('recording.wav');
+    expect((form.get('audio') as File).name).toBe('recording.wav'); // a Blob without the MP3 type
     expect(form.get('kind')).toBe('diary');
     expect(form.get('date')).toBe('2026-10-18');
     expect(JSON.parse(sessionStorage.getItem('maschnotes.aiJob')!).jobId).toBe('j1');

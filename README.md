@@ -78,7 +78,7 @@ Set these as environment variables.
 | `AI_LLM_MODEL`        | —                                        | e.g. `gemma4:12b`                                                         |
 | `AI_LLM_THINK`        | `false`                                  | Ollama `think` flag                                                       |
 | `AI_LLM_PROMPT_FILE`  | —                                        | optional override of the built-in system prompt                           |
-| `AI_MAX_AUDIO_MB`     | `50`                                     | upload limit                                                              |
+| `AI_MAX_AUDIO_MB`     | `50`                                     | upload limit (recordings are MP3 at about 0.24 MB per minute)             |
 | `AI_TIMEOUT`          | `10m`                                    | per-step timeout for whisper / LLM calls                                  |
 
 AI is enabled only when `AI_WHISPER_URL`, `AI_LLM_URL` and `AI_LLM_MODEL` are all set.

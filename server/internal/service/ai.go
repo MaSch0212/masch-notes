@@ -106,7 +106,7 @@ func (s *AiService) CreateAiJob(ctx context.Context, req api.CreateAiJobRequest)
 		return nil, badRequest("emptyAudio", "the recording is empty")
 	}
 
-	id := s.Jobs.Start(userID, audio, in)
+	id := s.Jobs.Start(userID, audio, ai.AudioFileName(b.Audio.Filename), in)
 	return api.CreateAiJob202Response{Body: api.AiJobCreated{JobID: id}}, nil
 }
 

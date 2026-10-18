@@ -10,7 +10,8 @@ import {
   type AiJobInput,
 } from '../lib/ai-jobs';
 import { createRecorder } from '../lib/audio/recorder';
-import { toWhisperWav } from '../lib/audio/wav';
+import { loadMp3Encoder } from '../lib/audio/mp3';
+import { toWhisperAudio } from '../lib/audio/wav';
 import { useI18n } from '../lib/i18n';
 import { layout } from '../lib/layout';
 import { useSession } from '../lib/session-context';
@@ -139,7 +140,7 @@ export function RecordButton(props: {
     setDuration(formatTime(elapsed));
     setPhase('working');
     try {
-      audio = await toWhisperWav(await recorder.stop());
+      audio = await toWhisperAudio(await recorder.stop());
     } catch {
       setPhase('idle');
       showToast(t('errors.internal'), 'error');
@@ -162,6 +163,12 @@ export function RecordButton(props: {
 
   const onClick = () => {
     if (phase() === 'idle') {
+      // Fetch the MP3 encoder now, so it is ready once the recording stops.
+      try {
+        loadMp3Encoder();
+      } catch {
+        // no workers: the recording is uploaded as WAV
+      }
       if (infoAccepted()) void start();
       else setDialog('confirm');
     } else if (phase() === 'recording') void stop();
@@ -173,10 +180,21 @@ export function RecordButton(props: {
     void start();
   };
 
-  const floating = () => layout() === 'phone';
+  /** Icon only on phones, where the date heading needs the room. */
+  const compact = () => layout() === 'phone' && phase() !== 'recording';
 
   return (
     <>
+      <Show when={phase() === 'idle'}>
+        <button
+          type="button"
+          onClick={() => setDialog('info')}
+          aria-label={t('recording.info.open')}
+          class="inline-flex size-8 items-center justify-center rounded-full text-muted transition hover:bg-rail hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          <Info class="size-4" aria-hidden="true" />
+        </button>
+      </Show>
       <button
         type="button"
         ref={(el) => (anchor = el)}
@@ -184,10 +202,8 @@ export function RecordButton(props: {
         disabled={phase() === 'working' || (phase() === 'idle' && live() === false)}
         title={phase() === 'idle' && live() === false ? t('recording.liveUnavailable') : undefined}
         aria-label={phase() === 'recording' ? t('recording.stop') : t('recording.start')}
-        class={`inline-flex items-center justify-center gap-1.5 border text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 ${
-          floating()
-            ? 'fixed right-4 bottom-4 z-30 size-14 rounded-full shadow-lg'
-            : 'rounded-full px-4 py-2'
+        class={`inline-flex items-center justify-center gap-1.5 border text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-60 rounded-full ${
+          compact() ? 'size-9' : 'px-4 py-2'
         } ${
           phase() === 'recording'
             ? 'border-transparent bg-mood-0 text-white'
@@ -199,7 +215,7 @@ export function RecordButton(props: {
           fallback={
             <>
               <Mic class="size-4" aria-hidden="true" />
-              <Show when={!floating()}>{t('recording.start')}</Show>
+              <Show when={!compact()}>{t('recording.start')}</Show>
             </>
           }
         >
@@ -209,20 +225,6 @@ export function RecordButton(props: {
           </span>
         </Show>
       </button>
-      <Show when={phase() === 'idle'}>
-        <button
-          type="button"
-          onClick={() => setDialog('info')}
-          aria-label={t('recording.info.open')}
-          class={`inline-flex size-8 items-center justify-center rounded-full text-muted transition hover:bg-rail hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-            floating()
-              ? 'fixed right-[4.75rem] bottom-7 z-30 border border-line bg-panel shadow'
-              : ''
-          }`}
-        >
-          <Info class="size-4" aria-hidden="true" />
-        </button>
-      </Show>
       <RecordingInfoDialog
         open={dialog() !== null}
         mode={dialog() ?? 'info'}

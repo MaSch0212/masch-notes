@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@breezystack/lamejs": "1.2.7",
     "@solid-primitives/i18n": "^2.2.1",
     "@solidjs/router": "^1.0.0",
     "lucide-solid": "^1.58.0",

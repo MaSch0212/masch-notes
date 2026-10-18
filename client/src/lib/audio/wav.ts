@@ -1,3 +1,5 @@
+import { encodeMp3InWorker } from './mp3';
+
 const TARGET_RATE = 16000;
 
 function writeAscii(view: DataView, offset: number, text: string) {
@@ -29,8 +31,8 @@ export function encodeWav(samples: Float32Array, sampleRate: number): Blob {
   return new Blob([buffer], { type: 'audio/wav' });
 }
 
-/** Decodes a recording and resamples it to 16 kHz mono PCM16 WAV (what whisper.cpp expects). */
-export async function toWhisperWav(blob: Blob): Promise<Blob> {
+/** Decodes a recording and resamples it to 16 kHz mono, the input whisper.cpp works with. */
+export async function decodeForWhisper(blob: Blob): Promise<Float32Array> {
   const data = await blob.arrayBuffer();
   const ctx = new AudioContext();
   try {
@@ -45,8 +47,22 @@ export async function toWhisperWav(blob: Blob): Promise<Blob> {
     source.connect(offline.destination);
     source.start();
     const rendered = await offline.startRendering();
-    return encodeWav(rendered.getChannelData(0), TARGET_RATE);
+    return rendered.getChannelData(0);
   } finally {
     void ctx.close();
+  }
+}
+
+/**
+ * Converts a recording for upload: 16 kHz mono MP3 (~0.24 MB/min), or a WAV (~1.9 MB/min) if the
+ * MP3 encoder cannot run.
+ */
+export async function toWhisperAudio(blob: Blob): Promise<Blob> {
+  const samples = await decodeForWhisper(blob);
+  try {
+    // The worker takes over the buffer, so it gets a copy for the WAV fallback to remain possible.
+    return await encodeMp3InWorker(samples.slice(), TARGET_RATE);
+  } catch {
+    return encodeWav(samples, TARGET_RATE);
   }
 }
