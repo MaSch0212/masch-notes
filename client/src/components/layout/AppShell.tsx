@@ -53,7 +53,7 @@ export function AppShell(props: { children?: JSX.Element }) {
               <IconRail />
             </Match>
           </Switch>
-          <main class="min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <main class="min-h-0 min-w-0 flex-1 overflow-y-auto pt-(--app-top)">
             <Show
               when={store.loaded()}
               fallback={

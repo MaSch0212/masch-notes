@@ -16,10 +16,11 @@ import {
 import type { MonthCount } from '../api/models/month-count';
 import { MonthCalendar } from '../components/MonthCalendar';
 import { EntryEditor } from '../components/EntryEditor';
-import { MoodPicker } from '../components/MoodPicker';
+import { MoodButton, MoodPicker } from '../components/MoodPicker';
 import { NotebookPicker } from '../components/NotebookPicker';
 import { RecordButton } from '../components/RecordButton';
 import { SaveStatus } from '../components/SaveStatus';
+import { StickyHeader } from '../components/StickyHeader';
 import { WeekStrip } from '../components/WeekStrip';
 import { Button, Modal, Popover, showToast, Spinner } from '../components/ui';
 import { apiError, ApiRequestError, unwrap } from '../lib/api';
@@ -366,8 +367,18 @@ export default function DiaryPage() {
 
     const heading = (
       <div class="min-w-0">
-        <div class="text-sm text-muted capitalize">{formatWeekday(date, locale())}</div>
-        <h1 class="text-xl leading-tight font-bold">{formatDayMonthYear(date, locale())}</h1>
+        <div class="text-sm text-muted capitalize group-data-collapsed:hidden">
+          {formatWeekday(date, locale())}
+        </div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl leading-tight font-bold transition-[font-size] duration-200 group-data-collapsed:text-base">
+            {formatDayMonthYear(date, locale())}
+          </h1>
+          {/* The mood picker scrolls away, so the collapsed header shows the mood instead. */}
+          <span class="hidden group-data-collapsed:inline-flex">
+            <MoodButton value={p.rating} onChange={p.onRating} />
+          </span>
+        </div>
       </div>
     );
 
@@ -513,16 +524,31 @@ export default function DiaryPage() {
       }
     };
 
+    const actions = (
+      <div class="flex shrink-0 items-center gap-2" data-slot="header-actions">
+        {renderHeaderActions(controller)}
+      </div>
+    );
+
     return (
       <div class="mx-auto w-full max-w-[70ch]">
-        <div class="flex items-start justify-between gap-3">
-          <Show when={p.heading} fallback={<span />}>
-            {p.heading}
-          </Show>
-          <div class="flex shrink-0 items-center gap-2" data-slot="header-actions">
-            {renderHeaderActions(controller)}
-          </div>
-        </div>
+        <Show
+          when={p.heading}
+          fallback={
+            <div class="flex items-start justify-between gap-3">
+              <span />
+              {actions}
+            </div>
+          }
+        >
+          {/* Stretches over the card padding, so text does not show beside it while stuck. */}
+          <StickyHeader class="-mx-5 px-5 medium:-mx-6 medium:px-6">
+            <div class="flex items-start justify-between gap-3 group-data-collapsed:items-center">
+              {p.heading}
+              {actions}
+            </div>
+          </StickyHeader>
+        </Show>
         {p.belowHeading}
         <Show
           when={!p.item.unreadable}

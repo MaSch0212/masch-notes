@@ -14,6 +14,7 @@ import {
 import { EntryEditor } from '../components/EntryEditor';
 import { NotebookPicker } from '../components/NotebookPicker';
 import { RecordButton } from '../components/RecordButton';
+import { StickyHeader } from '../components/StickyHeader';
 import { SaveStatus } from '../components/SaveStatus';
 import { Button, Modal, showToast, Spinner } from '../components/ui';
 import { apiError, ApiRequestError, unwrap } from '../lib/api';
@@ -427,29 +428,31 @@ export default function NotebookPage() {
           }
         >
           <div class="mx-auto w-full max-w-[70ch]">
-            <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0 flex-1">
-                <input
-                  type="text"
-                  aria-label={t('notebook.title')}
-                  aria-invalid={titleError() || undefined}
-                  aria-describedby={titleError() ? errorId : undefined}
-                  placeholder={t('notebook.titlePlaceholder')}
-                  value={name()}
-                  onInput={(e) => change({ name: e.currentTarget.value })}
-                  onBlur={flush}
-                  class="w-full bg-transparent text-xl font-bold outline-none placeholder:text-muted/60"
-                />
-                <Show when={titleError()}>
-                  <p id={errorId} role="alert" class="mt-1 text-sm text-mood-0">
-                    {t('notebook.titleRequired')}
-                  </p>
-                </Show>
+            <StickyHeader class="-mx-5 px-5 medium:-mx-6 medium:px-6">
+              <div class="flex items-start justify-between gap-3 group-data-collapsed:items-center">
+                <div class="min-w-0 flex-1">
+                  <input
+                    type="text"
+                    aria-label={t('notebook.title')}
+                    aria-invalid={titleError() || undefined}
+                    aria-describedby={titleError() ? errorId : undefined}
+                    placeholder={t('notebook.titlePlaceholder')}
+                    value={name()}
+                    onInput={(e) => change({ name: e.currentTarget.value })}
+                    onBlur={flush}
+                    class="w-full bg-transparent text-xl font-bold outline-none transition-[font-size] duration-200 placeholder:text-muted/60 group-data-collapsed:text-base"
+                  />
+                  <Show when={titleError()}>
+                    <p id={errorId} role="alert" class="mt-1 text-sm text-mood-0">
+                      {t('notebook.titleRequired')}
+                    </p>
+                  </Show>
+                </div>
+                <div class="flex shrink-0 items-center gap-2" data-slot="header-actions">
+                  {p.actions(controller)}
+                </div>
               </div>
-              <div class="flex shrink-0 items-center gap-2" data-slot="header-actions">
-                {p.actions(controller)}
-              </div>
-            </div>
+            </StickyHeader>
             <label class="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full border border-line px-3 py-1 text-sm text-muted focus-within:border-accent">
               <Tag class="size-3.5 shrink-0" aria-hidden="true" />
               <input

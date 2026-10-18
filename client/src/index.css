@@ -40,6 +40,21 @@ body,
   height: 100%;
 }
 
+/*
+ * Space above the page content. iOS 27 draws a progressive blur over the top of home screen apps
+ * that reaches about 40pt below the status bar, so content gets extra clearance there to stay sharp.
+ */
+:root {
+  --app-top: env(safe-area-inset-top, 0px);
+}
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    :root {
+      --app-top: calc(env(safe-area-inset-top, 0px) + 40px);
+    }
+  }
+}
+
 body {
   background: var(--color-bg);
   color: var(--color-text);
