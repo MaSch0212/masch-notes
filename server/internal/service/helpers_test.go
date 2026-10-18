@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MaSch0212/masch-notes/server/internal/ai"
 	"github.com/MaSch0212/masch-notes/server/internal/api"
 	"github.com/MaSch0212/masch-notes/server/internal/auth"
 	"github.com/MaSch0212/masch-notes/server/internal/config"
@@ -30,9 +31,13 @@ type testServer struct {
 	Store  *store.Store
 	Tokens *auth.Tokens
 	Cfg    config.Config
+	AI     *aiFakes
 }
 
-func newTestServer(t *testing.T) *testServer {
+func newTestServer(t *testing.T) *testServer { return newTestServerCfg(t, nil) }
+
+// newTestServerCfg is newTestServer with a hook to adjust the configuration (e.g. enable AI).
+func newTestServerCfg(t *testing.T, mutate func(*config.Config)) *testServer {
 	t.Helper()
 	p := filepath.Join(t.TempDir(), "maschnotes.db")
 	d, err := db.Open(p)
@@ -46,6 +51,9 @@ func newTestServer(t *testing.T) *testServer {
 	st := store.New(d)
 	tokens := auth.NewTokens(testSecret, time.Now)
 	cfg := config.Config{AllowRegistration: true}
+	if mutate != nil {
+		mutate(&cfg)
+	}
 	mux := http.NewServeMux()
 	opts := []api.ServerOption{
 		api.WithErrorHandler(WriteError),
@@ -57,7 +65,13 @@ func newTestServer(t *testing.T) *testServer {
 	api.RegisterDayRatingsRoutes(mux, &DayRatingsService{Store: st}, opts...)
 	api.RegisterAPIKeysRoutes(mux, &APIKeysService{Store: st}, opts...)
 	api.RegisterCryptoRoutes(mux, &CryptoService{Store: st}, opts...)
-	return &testServer{t: t, Mux: mux, Store: st, Tokens: tokens, Cfg: cfg}
+	fakes := &aiFakes{}
+	var jobs *ai.Jobs
+	if cfg.AI.Enabled() {
+		jobs = ai.NewJobs(fakes, fakes, func(int64, api.AiJob) {}, time.Minute, time.Now)
+	}
+	api.RegisterAiRoutes(mux, &AiService{Jobs: jobs, Cfg: cfg}, AiRouteOptions(cfg, opts...)...)
+	return &testServer{t: t, Mux: mux, Store: st, Tokens: tokens, Cfg: cfg, AI: fakes}
 }
 
 // do performs a JSON request; token may be empty. The response body is returned raw.
