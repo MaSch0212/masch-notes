@@ -1,0 +1,908 @@
+openapi: 3.1.0
+info:
+  title: MaSch Notes API
+  version: 2.0.0
+servers:
+  - url: /api
+security:
+  - bearer: []
+  - apiKey: []
+tags:
+  - name: Auth
+  - name: User
+  - name: Notebooks
+  - name: DayRatings
+  - name: ApiKeys
+  - name: Crypto
+  - name: Ai
+
+paths:
+  /config:
+    get:
+      tags: [Auth]
+      operationId: getConfig
+      security: []
+      responses:
+        '200':
+          description: Public server configuration
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AppConfig' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /auth/prelogin:
+    post:
+      tags: [Auth]
+      operationId: prelogin
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PreloginRequest' }
+      responses:
+        '200':
+          description: Key derivation parameters for the user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PreloginResponse' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: Logged in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '401': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '201':
+          description: Registered and logged in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        '403': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /auth/check:
+    get:
+      tags: [Auth]
+      operationId: checkToken
+      responses:
+        '204': { description: Token is valid }
+        default: { $ref: '#/components/responses/Error' }
+
+  /auth/password:
+    post:
+      tags: [Auth]
+      operationId: changePassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangePasswordRequest' }
+      responses:
+        '204': { description: Password changed }
+        '401': { $ref: '#/components/responses/Error' }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /user:
+    get:
+      tags: [User]
+      operationId: getUser
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        default: { $ref: '#/components/responses/Error' }
+    put:
+      tags: [User]
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateUserRequest' }
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /notebooks:
+    get:
+      tags: [Notebooks]
+      operationId: listNotebooks
+      responses:
+        '200':
+          description: Notebooks of the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Notebook' }
+        default: { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Notebooks]
+      operationId: createNotebook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NotebookInput' }
+      responses:
+        '201':
+          description: Created notebook
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notebook' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /notebooks/{notebookId}:
+    parameters:
+      - $ref: '#/components/parameters/NotebookId'
+    get:
+      tags: [Notebooks]
+      operationId: getNotebook
+      responses:
+        '200':
+          description: Notebook
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notebook' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+    put:
+      tags: [Notebooks]
+      operationId: renameNotebook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RenameNotebookRequest' }
+      responses:
+        '200':
+          description: Renamed notebook
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notebook' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Notebooks]
+      operationId: deleteNotebook
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /notebooks/{notebookId}/entries:
+    parameters:
+      - $ref: '#/components/parameters/NotebookId'
+    get:
+      tags: [Notebooks]
+      operationId: listEntries
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+        - name: includeContent
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Entries of the notebook
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/NotebookEntry' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+    post:
+      tags: [Notebooks]
+      operationId: createEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EntryInput' }
+      responses:
+        '201':
+          description: Created entry
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotebookEntry' }
+        '404': { $ref: '#/components/responses/Error' }
+        '409':
+          description: A diary entry already exists for this date
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ConflictError' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /notebooks/{notebookId}/entries/{entryId}:
+    parameters:
+      - $ref: '#/components/parameters/NotebookId'
+      - $ref: '#/components/parameters/EntryId'
+    get:
+      tags: [Notebooks]
+      operationId: getEntry
+      responses:
+        '200':
+          description: Entry
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotebookEntry' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+    put:
+      tags: [Notebooks]
+      operationId: updateEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EntryInput' }
+      responses:
+        '200':
+          description: Updated entry
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotebookEntry' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Notebooks]
+      operationId: deleteEntry
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /notebooks/{notebookId}/categories:
+    parameters:
+      - $ref: '#/components/parameters/NotebookId'
+    get:
+      tags: [Notebooks]
+      operationId: listCategories
+      responses:
+        '200':
+          description: Categories used in the notebook
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: string }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /day-ratings:
+    get:
+      tags: [DayRatings]
+      operationId: listRatings
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Ratings in the range
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/DayRating' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /day-ratings/{date}:
+    parameters:
+      - name: date
+        in: path
+        required: true
+        schema: { type: string, format: date }
+    put:
+      tags: [DayRatings]
+      operationId: setRating
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RatingInput' }
+      responses:
+        '200':
+          description: Stored rating
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DayRating' }
+        default: { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [DayRatings]
+      operationId: clearRating
+      responses:
+        '204': { description: Cleared }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api-keys:
+    get:
+      tags: [ApiKeys]
+      operationId: listApiKeys
+      responses:
+        '200':
+          description: API keys of the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ApiKey' }
+        default: { $ref: '#/components/responses/Error' }
+    post:
+      tags: [ApiKeys]
+      operationId: createApiKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApiKeyInput' }
+      responses:
+        '201':
+          description: Created key (the key is only returned once)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreatedApiKey' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /api-keys/{keyId}:
+    parameters:
+      - name: keyId
+        in: path
+        required: true
+        schema: { type: integer, format: int64 }
+    delete:
+      tags: [ApiKeys]
+      operationId: deleteApiKey
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /crypto/migration:
+    get:
+      tags: [Crypto]
+      operationId: getMigration
+      responses:
+        '200':
+          description: Migration state of the current user
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MigrationInfo' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /crypto/migration/start:
+    post:
+      tags: [Crypto]
+      operationId: startMigration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartMigrationRequest' }
+      responses:
+        '200':
+          description: Migration state (an already started migration is returned unchanged)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MigrationInfo' }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /crypto/migration/pending:
+    get:
+      tags: [Crypto]
+      operationId: listPendingEntries
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200 }
+      responses:
+        '200':
+          description: Entries that still need to be re-encrypted
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/PendingEntry' }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /crypto/migration/entries:
+    post:
+      tags: [Crypto]
+      operationId: uploadMigratedEntries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              maxItems: 200
+              items: { $ref: '#/components/schemas/MigratedEntry' }
+      responses:
+        '204': { description: Stored }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /crypto/migration/skip:
+    post:
+      tags: [Crypto]
+      operationId: skipEntries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SkipEntriesRequest' }
+      responses:
+        '204': { description: Entries skipped }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /crypto/migration/complete:
+    post:
+      tags: [Crypto]
+      operationId: completeMigration
+      responses:
+        '204': { description: Migration completed }
+        '409': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /ai/jobs:
+    post:
+      tags: [Ai]
+      operationId: createAiJob
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio, kind]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                kind: { $ref: '#/components/schemas/EntryKind' }
+                date:
+                  type: string
+                  format: date
+                title:
+                  type: string
+      responses:
+        '202':
+          description: Job started
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiJobCreated' }
+        '404': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+  /ai/jobs/{jobId}:
+    parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Ai]
+      operationId: getAiJob
+      responses:
+        '200':
+          description: Job state
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiJob' }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Ai]
+      operationId: cancelAiJob
+      responses:
+        '204': { description: Cancelled }
+        '404': { $ref: '#/components/responses/Error' }
+        default: { $ref: '#/components/responses/Error' }
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: query
+      name: apikey
+
+  parameters:
+    NotebookId:
+      name: notebookId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+    EntryId:
+      name: entryId
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Stable camelCase error code the client translates.
+        message:
+          type: string
+
+    ConflictError:
+      type: object
+      required: [code, message, entryId]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        entryId: { type: integer, format: int64 }
+
+    AppConfig:
+      type: object
+      required: [registrationEnabled, aiEnabled]
+      properties:
+        registrationEnabled: { type: boolean }
+        aiEnabled: { type: boolean }
+
+    KeyScheme:
+      type: string
+      enum: [legacy, v2]
+
+    PreloginRequest:
+      type: object
+      required: [username]
+      properties:
+        username: { type: string }
+
+    PreloginResponse:
+      type: object
+      required: [scheme]
+      properties:
+        scheme: { $ref: '#/components/schemas/KeyScheme' }
+        kdfSalt:
+          type: string
+          format: byte
+        kdfIterations: { type: integer }
+
+    LoginRequest:
+      type: object
+      required: [username, stayLoggedIn]
+      properties:
+        username: { type: string }
+        password:
+          type: string
+          description: Only for legacy accounts that are not migrated yet.
+        authKey:
+          type: string
+          format: byte
+          description: Derived authentication key (v2 accounts).
+        stayLoggedIn: { type: boolean }
+
+    LoginResponse:
+      type: object
+      required: [token, expiresAt, user, scheme]
+      properties:
+        token: { type: string }
+        expiresAt:
+          type: string
+          format: date-time
+        user: { $ref: '#/components/schemas/User' }
+        scheme: { $ref: '#/components/schemas/KeyScheme' }
+        wrappedKey:
+          type: string
+          format: byte
+        migration: { $ref: '#/components/schemas/MigrationInfo' }
+
+    RegisterRequest:
+      type: object
+      required:
+        [username, authKey, kdfSalt, kdfIterations, wrappedKey, givenName, surname, email]
+      properties:
+        username: { type: string }
+        authKey: { type: string, format: byte }
+        kdfSalt: { type: string, format: byte }
+        kdfIterations: { type: integer }
+        wrappedKey: { type: string, format: byte }
+        givenName: { type: string }
+        surname: { type: string }
+        email: { type: string }
+
+    ChangePasswordRequest:
+      type: object
+      required: [oldAuthKey, newAuthKey, kdfSalt, kdfIterations, wrappedKey]
+      properties:
+        oldAuthKey: { type: string, format: byte }
+        newAuthKey: { type: string, format: byte }
+        kdfSalt: { type: string, format: byte }
+        kdfIterations: { type: integer }
+        wrappedKey: { type: string, format: byte }
+
+    User:
+      type: object
+      required: [id, username, givenName, surname, email]
+      properties:
+        id: { type: integer, format: int64 }
+        username: { type: string }
+        givenName: { type: string }
+        surname: { type: string }
+        email: { type: string }
+
+    UpdateUserRequest:
+      type: object
+      required: [givenName, surname, email]
+      properties:
+        givenName: { type: string }
+        surname: { type: string }
+        email: { type: string }
+
+    Notebook:
+      type: object
+      required: [id, name, isDiary]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        isDiary: { type: boolean }
+
+    NotebookInput:
+      type: object
+      required: [name, isDiary]
+      properties:
+        name: { type: string }
+        isDiary: { type: boolean }
+
+    RenameNotebookRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+
+    NotebookEntry:
+      type: object
+      required: [id, notebookId, encVersion]
+      properties:
+        id: { type: integer, format: int64 }
+        notebookId: { type: integer, format: int64 }
+        name: { type: string }
+        category: { type: string }
+        date:
+          type: string
+          format: date
+        encVersion:
+          type: integer
+          description: 1 = legacy AES-CBC, 2 = AES-GCM with the user's data key.
+        content:
+          type: string
+          format: byte
+
+    EntryInput:
+      type: object
+      required: [content]
+      properties:
+        name: { type: string }
+        category: { type: string }
+        date:
+          type: string
+          format: date
+        content:
+          type: string
+          format: byte
+
+    DayRating:
+      type: object
+      required: [date, rating]
+      properties:
+        date:
+          type: string
+          format: date
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 4
+
+    RatingInput:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 4
+
+    ApiKey:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        createdAt:
+          type: string
+          format: date-time
+
+    ApiKeyInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+
+    CreatedApiKey:
+      type: object
+      required: [key, apiKey]
+      properties:
+        key: { type: string }
+        apiKey: { $ref: '#/components/schemas/ApiKey' }
+
+    MigrationStatus:
+      type: string
+      enum: [none, migrating, done]
+
+    MigrationInfo:
+      type: object
+      required: [status, totalEntries, migratedEntries]
+      properties:
+        status: { $ref: '#/components/schemas/MigrationStatus' }
+        legacySalt:
+          type: string
+          format: byte
+          description: Salt of the legacy encryption key (settings row -1), if the user has one.
+        kdfSalt: { type: string, format: byte }
+        kdfIterations: { type: integer }
+        wrappedKey: { type: string, format: byte }
+        totalEntries: { type: integer }
+        migratedEntries: { type: integer }
+
+    StartMigrationRequest:
+      type: object
+      required: [kdfSalt, kdfIterations, wrappedKey, authKey]
+      properties:
+        kdfSalt: { type: string, format: byte }
+        kdfIterations: { type: integer }
+        wrappedKey: { type: string, format: byte }
+        authKey: { type: string, format: byte }
+
+    PendingEntry:
+      type: object
+      required: [id, notebookId, notebookName, content]
+      properties:
+        id: { type: integer, format: int64 }
+        notebookId: { type: integer, format: int64 }
+        notebookName: { type: string }
+        name: { type: string }
+        date:
+          type: string
+          format: date
+        content:
+          type: string
+          format: byte
+
+    MigratedEntry:
+      type: object
+      required: [id, content]
+      properties:
+        id: { type: integer, format: int64 }
+        content: { type: string, format: byte }
+
+    SkipEntriesRequest:
+      type: object
+      required: [entryIds]
+      properties:
+        entryIds:
+          type: array
+          items: { type: integer, format: int64 }
+
+    EntryKind:
+      type: string
+      enum: [diary, notebook]
+
+    AiJobStatus:
+      type: string
+      enum: [queued, transcribing, composing, done, failed, cancelled]
+
+    AiResult:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        mood:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 4
+        title: { type: string }
+
+    AiJob:
+      type: object
+      required: [jobId, status]
+      properties:
+        jobId: { type: string }
+        status: { $ref: '#/components/schemas/AiJobStatus' }
+        result: { $ref: '#/components/schemas/AiResult' }
+        error:
+          type: string
+          description: Error code when status is failed.
+
+    AiJobCreated:
+      type: object
+      required: [jobId]
+      properties:
+        jobId: { type: string }
+
+    WsClientMessageType:
+      type: string
+      enum: [auth]
+
+    WsClientMessage:
+      type: object
+      required: [type, token]
+      properties:
+        type: { $ref: '#/components/schemas/WsClientMessageType' }
+        token: { type: string }
+
+    WsServerMessageType:
+      type: string
+      enum: [authOk, error, aiJob]
+
+    WsServerMessage:
+      type: object
+      required: [type]
+      properties:
+        type: { $ref: '#/components/schemas/WsServerMessageType' }
+        job: { $ref: '#/components/schemas/AiJob' }
+        error: { type: string }

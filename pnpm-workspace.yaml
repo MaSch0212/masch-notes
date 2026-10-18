@@ -3,3 +3,9 @@ packages:
   - tools/*
 
 minimumReleaseAge: 2880
+# Own packages (MaSch0212/goast) are trusted and often needed right after release.
+minimumReleaseAgeExclude:
+  - '@goast/*'
+
+allowBuilds:
+  esbuild: true

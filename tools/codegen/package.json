@@ -1,0 +1,14 @@
+{
+  "name": "codegen",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx generate.ts"
+  },
+  "devDependencies": {
+    "@goast/core": "^0.7.1",
+    "@goast/go": "^0.1.1",
+    "@goast/typescript": "^0.9.1",
+    "tsx": "^4.23.15"
+  }
+}
