@@ -5,6 +5,7 @@ go 1.27.2
 tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 require (
+	github.com/coder/websocket v1.8.15
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	golang.org/x/crypto v0.58.0
 	modernc.org/sqlite v1.60.1
