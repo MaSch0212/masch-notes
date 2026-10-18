@@ -110,6 +110,22 @@ func logConfig(log *slog.Logger, cfg config.Config, keySource string) {
 	log.Info("configuration", attrs...)
 }
 
+// checkAI logs whether the whisper and Ollama servers are reachable. It never stops the server,
+// since the AI servers may simply start later.
+func checkAI(ctx context.Context, cfg config.AIConfig, client *http.Client, log *slog.Logger) {
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	report := func(name, url string, err error) {
+		if err != nil {
+			log.Error("AI endpoint check failed", "endpoint", name, "url", url, "error", err)
+			return
+		}
+		log.Info("AI endpoint reachable", "endpoint", name, "url", url)
+	}
+	report("whisper", cfg.WhisperURL, ai.CheckWhisper(ctx, client, cfg.WhisperURL))
+	report("ollama", cfg.LLMURL, ai.CheckOllama(ctx, client, cfg.LLMURL, cfg.LLMModel))
+}
+
 // jwtKey returns the signing secret from the environment or DATA_DIR/jwt.key (created on first start).
 func jwtKey(cfg config.Config) (key []byte, source string, err error) {
 	if len(cfg.JWTKey) > 0 {
@@ -162,7 +178,11 @@ func buildHandler(ctx context.Context, cfg config.Config, database *sql.DB, secr
 			}
 			prompt = p
 		}
-		client := &http.Client{Timeout: cfg.AI.Timeout}
+		// A short dial timeout makes an unreachable host fail fast instead of after AI_TIMEOUT.
+		transport := http.DefaultTransport.(*http.Transport).Clone()
+		transport.DialContext = (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}).DialContext
+		client := &http.Client{Timeout: cfg.AI.Timeout, Transport: transport}
+		go checkAI(ctx, cfg.AI, client, log)
 		aiSvc.Jobs = ai.NewJobs(
 			ai.NewWhisper(cfg.AI.WhisperURL, cfg.AI.WhisperLanguage, client),
 			ai.NewOllama(cfg.AI.LLMURL, cfg.AI.LLMModel, cfg.AI.LLMThink, prompt, client),

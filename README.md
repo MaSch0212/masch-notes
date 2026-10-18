@@ -82,6 +82,7 @@ Set these as environment variables.
 | `AI_TIMEOUT`          | `10m`                                    | per-step timeout for whisper / LLM calls                                  |
 
 AI is enabled only when `AI_WHISPER_URL`, `AI_LLM_URL` and `AI_LLM_MODEL` are all set.
+On startup the server checks that both AI servers answer and that the model is installed, and logs an error if not.
 Old names stay accepted as aliases: `path-base` / `PathBase` → `BASE_PATH`; `JWT__key` /
 `JWT:key` → `JWT_KEY`; `DOTNET_RUNNING_IN_CONTAINER=true` still selects `/data`.
 
