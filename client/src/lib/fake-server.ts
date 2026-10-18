@@ -281,6 +281,20 @@ function routeData(
       .map((e) => e.category!);
     return json([...new Set(cats)].toSorted());
   }
+  m = /^\/notebooks\/(\d+)\/month-counts$/.exec(path);
+  if (m && method === 'GET') {
+    const counts = new Map<string, number>();
+    for (const e of server.notebookEntries) {
+      if (e.notebookId !== Number(m[1]) || !e.date) continue;
+      const month = e.date.slice(0, 7);
+      counts.set(month, (counts.get(month) ?? 0) + 1);
+    }
+    return json(
+      [...counts]
+        .toSorted(([x], [y]) => x.localeCompare(y))
+        .map(([month, count]) => ({ month, count })),
+    );
+  }
   m = /^\/notebooks\/(\d+)\/entries$/.exec(path);
   if (m) {
     const notebookId = Number(m[1]);

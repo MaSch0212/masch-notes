@@ -125,4 +125,31 @@ describe('DiaryPage', () => {
     await user.click(screen.getByRole('button', { name: 'Open month' }));
     expect(await screen.findByRole('button', { name: 'Next month' })).toBeInTheDocument();
   });
+  it('picker shows counts and jumps to the latest entry', async () => {
+    for (const [id, date] of [
+      [1, '2026-08-03'],
+      [2, '2026-08-20'],
+      [3, '2026-09-02'],
+    ] as const) {
+      app.server.notebookEntries.push({
+        id,
+        notebookId: 1,
+        date,
+        content: await app.encrypt('x'),
+      });
+    }
+    const user = userEvent.setup();
+    open('2026-10-18');
+    await editor();
+    await user.click(screen.getByRole('button', { name: 'October 2026' }));
+    await waitFor(() =>
+      expect(document.querySelector('[data-month="2026-08"]')).toHaveAttribute('data-count', '2'),
+    );
+    await user.click(
+      await screen.findByRole('button', { name: /Latest entry: .*2 September 2026/ }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('2 September 2026'),
+    );
+  });
 });

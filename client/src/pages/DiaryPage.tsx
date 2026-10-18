@@ -13,6 +13,7 @@ import {
   Match,
   type JSX,
 } from 'solid-js';
+import type { MonthCount } from '../api/models/month-count';
 import { MonthCalendar } from '../components/MonthCalendar';
 import { EntryEditor } from '../components/EntryEditor';
 import { MoodPicker } from '../components/MoodPicker';
@@ -116,13 +117,53 @@ export default function DiaryPage() {
     }),
   );
 
-  const markEntryDay = (date: string, has: boolean) =>
+  // Entry counts per month (one request per diary) and the newest entry's date.
+  const [counts, setCounts] = createSignal<MonthCount[]>([]);
+  const [latest, setLatest] = createSignal<string>();
+  let countsSeq = 0;
+  const loadCounts = async (nb: number) => {
+    const seq = ++countsSeq;
+    try {
+      const list = await unwrap(session.api.notebooks.listMonthCounts({ notebookId: nb }));
+      if (seq !== countsSeq) return;
+      setCounts(list);
+      const last = list.at(-1)?.month;
+      if (!last) {
+        setLatest(undefined);
+        return;
+      }
+      const [y, m] = last.split('-').map(Number) as [number, number];
+      const entries = await unwrap(
+        session.api.notebooks.listEntries({
+          notebookId: nb,
+          from: toIsoDate(new Date(y, m - 1, 1)),
+          to: toIsoDate(new Date(y, m, 0)),
+        }),
+      );
+      if (seq !== countsSeq) return;
+      const dates = entries.flatMap((e) => (e.date ? [e.date.slice(0, 10)] : []));
+      setLatest(dates.length > 0 ? dates.toSorted().at(-1) : undefined);
+    } catch (e) {
+      if (seq === countsSeq) showToast(t(errorKey(apiError(e).code)), 'error');
+    }
+  };
+  createEffect(
+    on(notebookId, (nb) => {
+      setCounts([]);
+      setLatest(undefined);
+      void loadCounts(nb);
+    }),
+  );
+
+  const markEntryDay = (date: string, has: boolean) => {
+    void loadCounts(notebookId());
     setEntryDays((p) => {
       const next = new Set(p);
       if (has) next.add(date);
       else next.delete(date);
       return next;
     });
+  };
 
   const setMood = async (value: number | null) => {
     const date = selected();
@@ -204,6 +245,8 @@ export default function DiaryPage() {
                 entryDays={entryDays()}
                 onSelect={select}
                 onMonthChange={setMonth}
+                counts={counts()}
+                latest={latest()}
               />
               <div class="mt-3 flex justify-center">{todayButton}</div>
             </aside>
@@ -223,6 +266,8 @@ export default function DiaryPage() {
                   entryDays={entryDays()}
                   onSelect={select}
                   onMonthChange={setMonth}
+                  counts={counts()}
+                  latest={latest()}
                 />
               </div>
             </div>
@@ -246,6 +291,8 @@ export default function DiaryPage() {
     entryDays: Set<string>;
     onSelect(date: string): void;
     onMonthChange(d: Date): void;
+    counts: MonthCount[];
+    latest?: string;
   }) {
     const [open, setOpen] = createSignal(false);
     const [anchor, setAnchor] = createSignal<HTMLElement>();
@@ -280,6 +327,8 @@ export default function DiaryPage() {
                 p.onSelect(d);
               }}
               onMonthChange={p.onMonthChange}
+              counts={p.counts}
+              latest={p.latest}
             />
           </div>
         </Popover>
